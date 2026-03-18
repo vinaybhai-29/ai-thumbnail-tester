@@ -89,7 +89,6 @@ app.post('/api/analyze-thumbnail', async (req, res) => {
                 }
             }
 
-            const userData = userDoc.data();
             const testsRemaining = Math.max(0, (userData.credits || 2) - (userData.testsUsedToday || 0));
 
             if (testsRemaining <= 0 && userData.credits === 0) {

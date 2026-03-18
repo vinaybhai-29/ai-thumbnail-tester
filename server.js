@@ -874,7 +874,7 @@ app.use((err, req, res, next) => {
 // Create Test User for Razorpay Review
 app.post('/api/create-test-user', async (req, res) => {
     try {
-        const testEmail = 'saifact90@gmail.com';
+        const testEmail = '0vinaychoudhry@gmail.com';
         const testPassword = 'Vinay@78';
 
         // Check if user already exists in Firestore

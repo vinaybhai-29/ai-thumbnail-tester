@@ -6,7 +6,7 @@
  * Usage: node setup-test-user.js
  * 
  * This script creates a test user account with:
- * - Email: saifact90@gmail.com
+ * - Email: 0vinaychoudhry@gmail.com
  * - Password: Vinay@78
  * - Status: Pro (unlimited access for 1 year)
  */
@@ -14,7 +14,7 @@
 require('dotenv').config();
 const admin = require('firebase-admin');
 
-const testEmail = 'saifact90@gmail.com';
+const testEmail = '0vinaychoudhry@gmail.com';
 const testPassword = 'Vinay@78';
 
 async function setupTestUser() {

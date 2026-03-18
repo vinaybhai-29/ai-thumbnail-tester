@@ -31,25 +31,50 @@ const db = admin.firestore();
 
 // Initialize Razorpay - only if keys are available
 let razorpay = null;
-console.log('🔑 Razorpay Setup Check:');
-console.log('   - RAZORPAY_KEY_ID exists:', !!process.env.RAZORPAY_KEY_ID);
-console.log('   - RAZORPAY_KEY_SECRET exists:', !!process.env.RAZORPAY_KEY_SECRET);
+console.log('\n🔑 ===== RAZORPAY INITIALIZATION DEBUG =====');
+console.log('RAZORPAY_KEY_ID exists:', !!process.env.RAZORPAY_KEY_ID);
+console.log('RAZORPAY_KEY_SECRET exists:', !!process.env.RAZORPAY_KEY_SECRET);
+
+if (process.env.RAZORPAY_KEY_ID) {
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const maskedKeyId = keyId.substring(0, 8) + '...' + keyId.substring(keyId.length - 4);
+    console.log('RAZORPAY_KEY_ID (masked):', maskedKeyId);
+} else {
+    console.warn('❌ RAZORPAY_KEY_ID is NOT set in environment');
+}
+
+if (process.env.RAZORPAY_KEY_SECRET) {
+    const secret = process.env.RAZORPAY_KEY_SECRET;
+    const maskedSecret = secret.substring(0, 4) + '...' + secret.substring(secret.length - 4);
+    console.log('RAZORPAY_KEY_SECRET (masked):', maskedSecret);
+} else {
+    console.warn('❌ RAZORPAY_KEY_SECRET is NOT set in environment');
+}
 
 if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
     try {
+        console.log('\n📍 Attempting to initialize Razorpay SDK...');
         razorpay = new Razorpay({
             key_id: process.env.RAZORPAY_KEY_ID,
             key_secret: process.env.RAZORPAY_KEY_SECRET
         });
-        console.log('✅ Razorpay initialized successfully');
-        console.log('   - Key ID starts with:', process.env.RAZORPAY_KEY_ID.substring(0, 8) + '...');
+        console.log('✅ SUCCESS: Razorpay SDK initialized successfully');
+        console.log('Instance loaded and ready for API calls');
     } catch (error) {
-        console.error('❌ Error initializing Razorpay:', error.message);
+        console.error('❌ FAILED: Error initializing Razorpay SDK');
+        console.error('Error Type:', error.constructor.name);
+        console.error('Error Message:', error.message);
+        console.error('Full Error:', error);
         razorpay = null;
     }
 } else {
-    console.warn('⚠️  Warning: Razorpay keys not configured in environment variables. Payment routes will not work.');
+    console.warn('\n⚠️  WARNING: Razorpay keys not fully configured. Payment routes will NOT work.');
+    console.warn('Missing keys:', {
+        keyId: !process.env.RAZORPAY_KEY_ID,
+        keySecret: !process.env.RAZORPAY_KEY_SECRET
+    });
 }
+console.log('🔑 ===== END RAZORPAY DEBUG =====\n');
 
 // Middleware
 app.use(cors());
@@ -428,12 +453,19 @@ app.post('/api/update-test-usage', async (req, res) => {
 
 // Diagnostic: Check if Razorpay is initialized
 app.get('/api/status', (req, res) => {
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    
     res.json({
         server: 'running',
         razorpayInitialized: !!razorpay,
-        razorpayKeyIdSet: !!process.env.RAZORPAY_KEY_ID,
-        razorpayKeySecretSet: !!process.env.RAZORPAY_KEY_SECRET,
-        timestamp: new Date().toISOString()
+        razorpayKeyIdSet: !!keyId,
+        razorpayKeySecretSet: !!keySecret,
+        razorpayKeyId_masked: keyId ? keyId.substring(0, 8) + '...' : 'NOT SET',
+        razorpayKeyIdStartsWithRzp: keyId ? keyId.startsWith('rzp_') : false,
+        razorpayKeyIdLength: keyId ? keyId.length : 0,
+        timestamp: new Date().toISOString(),
+        nodeEnv: process.env.NODE_ENV || 'production'
     });
 });
 
@@ -442,21 +474,48 @@ app.post('/api/create-order', async (req, res) => {
     try {
         const { uid, amount, creditsToAdd } = req.body;
 
-        console.log('📋 Create Order Request:', { uid, amount, creditsToAdd });
+        console.log('\n📋 ===== CREATE ORDER REQUEST =====');
+        console.log('Request Data:', { uid, amount, creditsToAdd });
 
         if (!uid || !amount || !creditsToAdd) {
             console.warn('⚠️ Validation Error: Missing required fields');
             return res.status(400).json({ error: 'Missing uid, amount, or creditsToAdd' });
         }
 
+        // ===== CRITICAL DEBUG: Log environment variables BEFORE order creation =====
+        console.log('\n🔍 DEBUG: Environment Check at Order Creation Time');
+        console.log('Razorpay instance exists:', !!razorpay);
+        console.log('RAZORPAY_KEY_ID set:', !!process.env.RAZORPAY_KEY_ID);
+        console.log('RAZORPAY_KEY_SECRET set:', !!process.env.RAZORPAY_KEY_SECRET);
+        
+        if (process.env.RAZORPAY_KEY_ID) {
+            const keyId = process.env.RAZORPAY_KEY_ID;
+            console.log('RAZORPAY_KEY_ID value (first 8 chars):', keyId.substring(0, 8));
+            console.log('RAZORPAY_KEY_ID length:', keyId.length);
+            console.log('Starts with "rzp_":', keyId.startsWith('rzp_'));
+        }
+
         if (!razorpay) {
-            console.error('❌ Razorpay not initialized. Check RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables.');
-            return res.status(500).json({ error: 'Razorpay is not initialized. Please ensure RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are set in environment variables.' });
+            console.error('❌ FATAL: Razorpay SDK not initialized!');
+            console.error('This means environment variables were not loaded correctly.');
+            return res.status(500).json({ 
+                error: 'Razorpay SDK not initialized',
+                debug: {
+                    razorpayInitialized: !!razorpay,
+                    envVarsMissing: true
+                }
+            });
         }
 
         // Convert to paise and create order
         const amountInPaise = amount * 100;
-        console.log(`💰 Creating order: ₹${amount} = ${amountInPaise} paise`);
+        console.log(`\n💰 Creating order: ₹${amount} = ${amountInPaise} paise`);
+        console.log('Order Details:', {
+            amount: amountInPaise,
+            currency: 'INR',
+            receipt: `receipt_${uid}_${Date.now()}`,
+            uid: uid
+        });
 
         const order = await razorpay.orders.create({
             amount: amountInPaise,
@@ -468,7 +527,8 @@ app.post('/api/create-order', async (req, res) => {
             }
         });
 
-        console.log('✅ Order Created Successfully:', { orderID: order.id, amount: order.amount, currency: order.currency });
+        console.log('✅ SUCCESS: Order Created:', { orderID: order.id, amount: order.amount, currency: order.currency });
+        console.log('===== CREATE ORDER SUCCESS =====\n');
 
         res.json({
             orderID: order.id,
@@ -477,16 +537,31 @@ app.post('/api/create-order', async (req, res) => {
         });
 
     } catch (err) {
-        console.error('❌ Error creating Razorpay order:');
+        console.error('\n❌ ===== ERROR CREATING RAZORPAY ORDER =====');
+        console.error('Error Type:', err.constructor.name);
         console.error('Error Message:', err.message);
         console.error('Error Code:', err.code);
-        console.error('Error Details:', err);
+        console.error('Error Status:', err.statusCode);
+        console.error('Error Response:', err.response);
+        console.error('Full Error Object:', JSON.stringify(err, null, 2));
+        console.error('===== END ERROR DETAILS =====\n');
         
-        // Return helpful error message
-        const errorMessage = err.message || 'Failed to create order with Razorpay';
+        // Try to extract meaningful error from Razorpay
+        let errorMessage = err.message || 'Failed to create order';
+        
+        if (err.response && err.response.body) {
+            console.error('Razorpay Response Body:', err.response.body);
+            errorMessage = err.response.body.error?.description || err.response.body.error?.reason || errorMessage;
+        }
+        
+        if (err.message.includes('Invalid') || err.message.includes('Unauthorized')) {
+            errorMessage = 'Invalid Razorpay credentials. Check your API keys.';
+        }
+        
         res.status(500).json({ 
             error: errorMessage,
-            details: process.env.NODE_ENV === 'development' ? err : undefined
+            errorCode: err.code || err.statusCode || 'UNKNOWN',
+            rawError: process.env.NODE_ENV === 'development' ? err.message : undefined
         });
     }
 });

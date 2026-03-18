@@ -1226,7 +1226,8 @@
 
         // Razorpay Checkout
         async function initRazorpayCheckout(amount, quantity, source) {
-            if (!razorpay) {
+            // Check if Razorpay script is loaded
+            if (!window.Razorpay) {
                 alert('Payment system not available. Please try again later.');
                 return;
             }

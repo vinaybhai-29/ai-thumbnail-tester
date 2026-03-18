@@ -20,6 +20,6 @@
     "dotenv": "^16.6.1",
     "express": "^4.22.1",
     "firebase-admin": "^12.7.0",
-    "razorpay": "^2.9.2"
+    "razorpay": "^2.9.6"
   }
 }

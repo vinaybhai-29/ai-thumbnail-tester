@@ -464,12 +464,15 @@ app.post('/api/verify-payment', async (req, res) => {
         const userData = userDoc.data();
         const currentCredits = userData.credits || 0;
 
-        // Update user credits in Firestore and set as Premium
+        // Update user credits in Firestore and set Pro status with 28-day expiry
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 28);
+
         await db.collection('users').doc(uid).update({
-            credits: currentCredits + creditsToAdd,
-            isPremium: true,
-            lastCreditPurchaseDate: new Date(),
-            totalCreditsPurchased: (userData.totalCreditsPurchased || 0) + creditsToAdd
+            status: 'Pro',
+            expiryDate: expiryDate,
+            lastPaymentDate: new Date(),
+            totalPurchases: (userData.totalPurchases || 0) + 1
         });
 
         // Store payment record for tracking
@@ -505,28 +508,51 @@ app.post('/api/get-user-credits', async (req, res) => {
         const userDoc = await db.collection('users').doc(uid).get();
         
         if (!userDoc.exists) {
-            // New user - 2 free trials
+            // New user
             return res.json({
-                credits: 0,
                 status: 'free',
                 uploadCount: 0,
                 canUpload: true,
-                freeTrialsRemaining: 2
+                freeTrialsRemaining: 2,
+                daysRemaining: 0
             });
         }
 
-        const userData = userDoc.data();
+        let userData = userDoc.data();
+        let currentStatus = userData.status || 'free';
         const uploadCount = userData.uploadCount || 0;
-        const isPremium = userData.isPremium || false;
         const freeTrialsRemaining = Math.max(0, 2 - uploadCount);
 
+        // Check if Pro status has expired
+        if (currentStatus === 'Pro' && userData.expiryDate) {
+            const expiryDate = userData.expiryDate.toDate ? userData.expiryDate.toDate() : new Date(userData.expiryDate);
+            const now = new Date();
+
+            if (now > expiryDate) {
+                // Pro has expired, revert to free
+                currentStatus = 'free';
+                await db.collection('users').doc(uid).update({
+                    status: 'free'
+                });
+            }
+        }
+
+        // Calculate days remaining if Pro
+        let daysRemaining = 0;
+        if (currentStatus === 'Pro' && userData.expiryDate) {
+            const expiryDate = userData.expiryDate.toDate ? userData.expiryDate.toDate() : new Date(userData.expiryDate);
+            const now = new Date();
+            const diffTime = expiryDate - now;
+            daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
         res.json({
-            credits: userData.credits || 0,
-            status: isPremium ? 'premium' : 'free',
+            status: currentStatus,
             uploadCount: uploadCount,
-            canUpload: isPremium || uploadCount < 2,
+            canUpload: currentStatus === 'Pro' || uploadCount < 2,
             freeTrialsRemaining: freeTrialsRemaining,
-            isPremium: isPremium
+            daysRemaining: daysRemaining,
+            expiryDate: userData.expiryDate ? (userData.expiryDate.toDate ? userData.expiryDate.toDate() : new Date(userData.expiryDate)) : null
         });
 
     } catch (err) {
@@ -534,6 +560,7 @@ app.post('/api/get-user-credits', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
 
 // Check Upload Limit (before allowing upload)
 app.post('/api/check-upload-limit', async (req, res) => {
@@ -550,30 +577,48 @@ app.post('/api/check-upload-limit', async (req, res) => {
             return res.json({ canUpload: true, isFirstUpload: true });
         }
 
-        const userData = userDoc.data();
+        let userData = userDoc.data();
         const uploadCount = userData.uploadCount || 0;
-        const isPremium = userData.isPremium || false;
+        let currentStatus = userData.status || 'free';
 
-        if (isPremium) {
+        // Check if Pro status has expired
+        if (currentStatus === 'Pro' && userData.expiryDate) {
+            const expiryDate = userData.expiryDate.toDate ? userData.expiryDate.toDate() : new Date(userData.expiryDate);
+            const now = new Date();
+
+            if (now > expiryDate) {
+                // Pro has expired, revert to free
+                currentStatus = 'free';
+                await db.collection('users').doc(uid).update({
+                    status: 'free'
+                });
+            }
+        }
+
+        // Pro members can upload unlimited
+        if (currentStatus === 'Pro') {
             return res.json({ 
                 canUpload: true, 
-                isFirstUpload: false,
-                isPremium: true
+                status: 'Pro',
+                isPro: true
             });
         }
 
+        // Check free user limit
         if (uploadCount >= 2) {
             return res.json({ 
                 canUpload: false, 
                 uploadCount: uploadCount,
-                reason: 'Free limit reached'
+                reason: 'Free limit reached',
+                status: 'free'
             });
         }
 
         res.json({ 
             canUpload: true, 
             uploadCount: uploadCount,
-            uploadsRemaining: 2 - uploadCount
+            uploadsRemaining: 2 - uploadCount,
+            status: 'free'
         });
 
     } catch (err) {

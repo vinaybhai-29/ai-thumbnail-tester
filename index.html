@@ -705,8 +705,31 @@
         .btn-logout:hover {
             background: #dc2626 !important;
         }
+
+        .pro-badge {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 0.5rem;
+            cursor: default;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+            margin-right: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            pointer-events: none;
+        }
+
+        .pro-expiry {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
         
-        .success-message { 
+        .success-message {
             display: none;
             background: #052e16;
             color: #22c55e;
@@ -755,7 +778,7 @@
     <div class="header">
         <div class="header-brand">🎯 Thumbnail Tester</div>
         <div class="header-auth">
-            <button id="buyCreditsBtn" class="btn-credits" onclick="openBuyCreditsModal()" style="display: none;">💳 Buy Credits (₹49)</button>
+            <button id="buyCreditsBtn" class="btn-credits" onclick="openBuyCreditsModal()" style="display: none;">� Upgrade to Pro</button>
             <button id="menuIcon" class="hamburger-btn" style="display: none;">
                 <span class="hamburger-icon"></span>
                 <span class="hamburger-icon"></span>
@@ -918,66 +941,67 @@
         </div>
     </div>
 
-    <!-- Paywall Modal - Free Limit Reached -->
+    <!-- Paywall Modal - Unlock Pro Subscription -->
     <div class="modal-overlay" id="paywallModal">
         <div class="modal">
-            <h2>🎉 Free Limit Reached!</h2>
-            <p style="margin: 1.5rem 0; color: #cbd5e1;">You've used your 2 free analysis tests. Upgrade to <strong>Premium</strong> for unlimited access.</p>
+            <h2>🚀 Unlock Pro & Continue</h2>
+            <p style="margin: 1.5rem 0; color: #cbd5e1;">You've used your 2 free analyses. Upgrade to <strong>Pro</strong> for unlimited access for the next 28 days!</p>
             
-            <div style="background: linear-gradient(135deg, #334155, #1e293b); padding: 1.5rem; border-radius: 0.75rem; margin: 1.5rem 0; border: 2px solid #38bdf8;">
+            <div style="background: linear-gradient(135deg, #334155, #1e293b); padding: 1.5rem; border-radius: 0.75rem; margin: 1.5rem 0; border: 2px solid #10b981;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                     <div>
-                        <div style="font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Premium Benefits</div>
-                        <div style="font-size: 1.25rem; font-weight: 700; color: #22c55e;">✅ Unlimited Uploads</div>
+                        <div style="font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Pro Member Gets</div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: #10b981;">✅ Unlimited for 28 Days</div>
                     </div>
-                    <div style="font-size: 2.5rem;">👑</div>
+                    <div style="font-size: 2.5rem;">✨</div>
                 </div>
                 <div style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6;">
-                    ✨ AI Title Suggestions<br>
-                    📊 Combined Analysis<br>
-                    🚀 Priority Support
+                    🎯 Unlimited Thumbnail Analysis<br>
+                    🤖 AI Title Generator<br>
+                    📊 Combined Scores & Tips<br>
+                    ⏰ Auto-expires after 28 days
                 </div>
             </div>
 
             <div style="text-align: center; margin-bottom: 1.5rem;">
-                <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0.5rem;">One-time payment</div>
-                <div style="font-size: 2.5rem; font-weight: 700; color: #38bdf8;">₹49</div>
+                <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0.5rem;">28-Day Pro Subscription</div>
+                <div style="font-size: 2.5rem; font-weight: 700; color: #10b981;">₹49</div>
             </div>
             
             <div class="modal-buttons">
                 <button id="closePaywallBtn" class="btn-secondary" onclick="closePaywallModal()" style="flex: 1;">Maybe Later</button>
-                <button id="upgradePaywallBtn" class="btn-primary" onclick="initRazorpayCheckout('₹49', 1, 'paywall')" style="flex: 1; background: linear-gradient(135deg, #22c55e, #16a34a) !important;">💳 Upgrade Now</button>
+                <button id="upgradePaywallBtn" class="btn-primary" onclick="initRazorpayCheckout('₹49', 1, 'paywall')" style="flex: 1; background: linear-gradient(135deg, #10b981, #059669) !important;">🚀 Upgrade to Pro</button>
             </div>
         </div>
     </div>
 
-    <!-- Buy Credits Modal - From Header Button -->
+    <!-- Upgrade to Pro Modal - From Header Button -->
     <div class="modal-overlay" id="buyCreditsModal">
         <div class="modal">
-            <h2>💳 Get Premium Access</h2>
-            <p style="margin: 1.5rem 0; color: #cbd5e1;">Unlock unlimited analysis and AI-powered suggestions</p>
+            <h2>🚀 Upgrade to Pro</h2>
+            <p style="margin: 1.5rem 0; color: #cbd5e1;">Get unlimited thumbnail analysis and AI-powered suggestions for 28 days</p>
             
-            <div style="background: linear-gradient(135deg, #334155, #1e293b); padding: 1.5rem; border-radius: 0.75rem; margin: 1.5rem 0; border: 2px solid #ec4899;">
+            <div style="background: linear-gradient(135deg, #334155, #1e293b); padding: 1.5rem; border-radius: 0.75rem; margin: 1.5rem 0; border: 2px solid #10b981;">
                 <div style="text-align: center; margin-bottom: 1rem;">
-                    <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 1rem; letter-spacing: 1px; text-transform: uppercase;">Special Offer</div>
-                    <div style="font-size: 3rem; font-weight: 700; color: #ec4899;">₹49</div>
-                    <div style="color: #94a3b8; font-size: 0.9rem; margin-top: 0.5rem;">One-time Lifetime Access</div>
+                    <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 1rem; letter-spacing: 1px; text-transform: uppercase;">28-Day Subscription</div>
+                    <div style="font-size: 3rem; font-weight: 700; color: #10b981;">₹49</div>
+                    <div style="color: #94a3b8; font-size: 0.9rem; margin-top: 0.5rem;">Then ₹0 until expiry • Auto renews at ₹49</div>
                 </div>
                 <div style="border-top: 1px solid #475569; border-bottom: 1px solid #475569; padding: 1rem 0; margin: 1rem 0; color: #cbd5e1; font-size: 0.9rem; line-height: 1.8;">
                     ✅ Unlimited Thumbnail Analysis<br>
                     ✅ AI Title Generator<br>
                     ✅ Combined Clickability Scores<br>
                     ✅ 5 Improvement Tips<br>
-                    ✅ Priority Email Support
+                    ✅ Valid for 28 Days
                 </div>
             </div>
             
             <div class="modal-buttons">
                 <button id="closeBuyCreditsBtn" class="btn-secondary" onclick="closeBuyCreditsModal()" style="flex: 1;">Not Now</button>
-                <button id="buyCreditsPayBtn" class="btn-primary" onclick="initRazorpayCheckout('₹49', 1, 'header')" style="flex: 1; background: linear-gradient(135deg, #ec4899, #db2777) !important;">💳 Pay Now</button>
+                <button id="buyCreditsPayBtn" class="btn-primary" onclick="initRazorpayCheckout('₹49', 1, 'header')" style="flex: 1; background: linear-gradient(135deg, #10b981, #059669) !important;">🚀 Upgrade Now</button>
             </div>
 
-            <p class="modal-footer">🔒 Secure payment powered by Razorpay</p>
+            <p class="modal-footer">🔒 Secure payment powered by Razorpay • Cancel anytime</p>
         </div>
     </div>
 
@@ -1118,13 +1142,41 @@
                 });
 
                 const data = await response.json();
-                userCredits = data.credits || 0;
                 userStatus = data.status || 'free';
                 uploadCount = data.uploadCount || 0;
 
-                console.log(`User Status: ${userStatus}, Uploads: ${uploadCount}, Can Upload: ${data.canUpload}`);
+                console.log(`User Status: ${userStatus}, Uploads: ${uploadCount}, Days Remaining: ${data.daysRemaining}`);
+
+                // Update header based on Pro status
+                updateHeaderUI(data);
             } catch (err) {
                 console.error('Error loading credits:', err);
+            }
+        }
+
+        // Update Header UI Based on Pro Status
+        function updateHeaderUI(creditsData) {
+            if (creditsData.status === 'Pro' && creditsData.daysRemaining > 0) {
+                // Show Pro badge instead of upgrade button
+                buyCreditsBtn.style.display = 'none';
+                
+                // Create or update Pro badge
+                let proBadge = document.getElementById('proBadge');
+                if (!proBadge) {
+                    proBadge = document.createElement('div');
+                    proBadge.id = 'proBadge';
+                    proBadge.className = 'pro-badge';
+                    const headerAuth = document.querySelector('.header-auth');
+                    headerAuth.insertBefore(proBadge, buyCreditsBtn);
+                }
+                
+                proBadge.innerHTML = `✅ Pro Member<div class="pro-expiry">Ends in ${creditsData.daysRemaining} day${creditsData.daysRemaining !== 1 ? 's' : ''}</div>`;
+                proBadge.style.display = 'flex';
+            } else {
+                // Show upgrade button
+                const proBadge = document.getElementById('proBadge');
+                if (proBadge) proBadge.style.display = 'none';
+                buyCreditsBtn.style.display = 'block';
             }
         }
 

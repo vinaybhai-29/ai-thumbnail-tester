@@ -71,7 +71,22 @@ app.post('/api/analyze-thumbnail', async (req, res) => {
             const userDoc = await db.collection('users').doc(uid).get();
             
             if (!userDoc.exists) {
+                console.warn(`⚠️ User not found: ${uid}`);
                 return res.status(404).json({ error: 'userNotFound', message: 'User not found. Please login first.' });
+            }
+            
+            const userData = userDoc.data();
+            // Check if user is Pro member - allow unlimited access
+            if (userData.isPro || userData.status === 'Pro') {
+                const expiry = userData.expiryDate ? (userData.expiryDate.toDate ? userData.expiryDate.toDate() : new Date(userData.expiryDate)) : null;
+                if (expiry && new Date() <= expiry) {
+                    console.log(`✅ Pro member ${uid} - unlimited thumbnail analysis`);
+                    // Pro members get unlimited - continue without upload checks
+                } else {
+                    // Pro expired, reset status
+                    console.log(`⏰ Pro expired for user ${uid}`);
+                    await db.collection('users').doc(uid).update({ isPro: false, status: 'free', uploadCount: 0 });
+                }
             }
 
             const userData = userDoc.data();
@@ -213,7 +228,22 @@ app.post('/api/analyze-combined', async (req, res) => {
             const userDoc = await db.collection('users').doc(uid).get();
             
             if (!userDoc.exists) {
+                console.warn(`⚠️ User not found for combined analysis: ${uid}`);
                 return res.status(404).json({ error: 'userNotFound', message: 'User not found. Please login first.' });
+            }
+            
+            const userData = userDoc.data();
+            // Check if user is Pro - allow unlimited combined analysis
+            if (userData.isPro || userData.status === 'Pro') {
+                const expiry = userData.expiryDate ? (userData.expiryDate.toDate ? userData.expiryDate.toDate() : new Date(userData.expiryDate)) : null;
+                if (expiry && new Date() <= expiry) {
+                    console.log(`✅ Pro member ${uid} - combined analysis unlimited`);
+                    // Pro members get unlimited access
+                } else {
+                    // Pro expired
+                    console.log(`⏰ Pro expired for user ${uid}`);
+                    await db.collection('users').doc(uid).update({ isPro: false, status: 'free' });
+                }
             }
         }
 
@@ -498,15 +528,19 @@ app.post('/api/verify-payment', async (req, res) => {
         const userData = userDoc.data();
         const currentCredits = userData.credits || 0;
 
-        // Update user credits in Firestore and set Pro status with 28-day expiry
+        // Update user to Pro status with 28-day expiry
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + 28);
 
+        console.log(`💳 Payment verified for user ${uid}. Setting Pro status, expires: ${expiryDate}`);
+
         await db.collection('users').doc(uid).update({
+            isPro: true,
             status: 'Pro',
             expiryDate: expiryDate,
             lastPaymentDate: new Date(),
-            totalPurchases: (userData.totalPurchases || 0) + 1
+            totalPurchases: (userData.totalPurchases || 0) + 1,
+            uploadCount: 0
         });
 
         // Store payment record for tracking
@@ -558,15 +592,18 @@ app.post('/api/get-user-credits', async (req, res) => {
         const freeTrialsRemaining = Math.max(0, 2 - uploadCount);
 
         // Check if Pro status has expired
-        if (currentStatus === 'Pro' && userData.expiryDate) {
+        if ((currentStatus === 'Pro' || userData.isPro) && userData.expiryDate) {
             const expiryDate = userData.expiryDate.toDate ? userData.expiryDate.toDate() : new Date(userData.expiryDate);
             const now = new Date();
 
             if (now > expiryDate) {
                 // Pro has expired, revert to free
+                console.log(`⏰ Pro expired for user ${uid}, reverting to free`);
                 currentStatus = 'free';
                 await db.collection('users').doc(uid).update({
-                    status: 'free'
+                    status: 'free',
+                    isPro: false,
+                    uploadCount: 0
                 });
             }
         }

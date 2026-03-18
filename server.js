@@ -464,9 +464,10 @@ app.post('/api/verify-payment', async (req, res) => {
         const userData = userDoc.data();
         const currentCredits = userData.credits || 0;
 
-        // Update user credits in Firestore
+        // Update user credits in Firestore and set as Premium
         await db.collection('users').doc(uid).update({
             credits: currentCredits + creditsToAdd,
+            isPremium: true,
             lastCreditPurchaseDate: new Date(),
             totalCreditsPurchased: (userData.totalCreditsPurchased || 0) + creditsToAdd
         });
@@ -488,6 +489,132 @@ app.post('/api/verify-payment', async (req, res) => {
 
     } catch (err) {
         console.error('Error verifying payment:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get User Credits and Usage Status
+app.post('/api/get-user-credits', async (req, res) => {
+    try {
+        const { uid } = req.body;
+
+        if (!uid) {
+            return res.status(400).json({ error: 'Missing uid' });
+        }
+
+        const userDoc = await db.collection('users').doc(uid).get();
+        
+        if (!userDoc.exists) {
+            // New user - 2 free trials
+            return res.json({
+                credits: 0,
+                status: 'free',
+                uploadCount: 0,
+                canUpload: true,
+                freeTrialsRemaining: 2
+            });
+        }
+
+        const userData = userDoc.data();
+        const uploadCount = userData.uploadCount || 0;
+        const isPremium = userData.isPremium || false;
+        const freeTrialsRemaining = Math.max(0, 2 - uploadCount);
+
+        res.json({
+            credits: userData.credits || 0,
+            status: isPremium ? 'premium' : 'free',
+            uploadCount: uploadCount,
+            canUpload: isPremium || uploadCount < 2,
+            freeTrialsRemaining: freeTrialsRemaining,
+            isPremium: isPremium
+        });
+
+    } catch (err) {
+        console.error('Error getting user credits:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Check Upload Limit (before allowing upload)
+app.post('/api/check-upload-limit', async (req, res) => {
+    try {
+        const { uid } = req.body;
+
+        if (!uid) {
+            return res.status(400).json({ error: 'Missing uid' });
+        }
+
+        const userDoc = await db.collection('users').doc(uid).get();
+        
+        if (!userDoc.exists) {
+            return res.json({ canUpload: true, isFirstUpload: true });
+        }
+
+        const userData = userDoc.data();
+        const uploadCount = userData.uploadCount || 0;
+        const isPremium = userData.isPremium || false;
+
+        if (isPremium) {
+            return res.json({ 
+                canUpload: true, 
+                isFirstUpload: false,
+                isPremium: true
+            });
+        }
+
+        if (uploadCount >= 2) {
+            return res.json({ 
+                canUpload: false, 
+                uploadCount: uploadCount,
+                reason: 'Free limit reached'
+            });
+        }
+
+        res.json({ 
+            canUpload: true, 
+            uploadCount: uploadCount,
+            uploadsRemaining: 2 - uploadCount
+        });
+
+    } catch (err) {
+        console.error('Error checking upload limit:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Increment Upload Count After Analysis
+app.post('/api/increment-usage', async (req, res) => {
+    try {
+        const { uid } = req.body;
+
+        if (!uid) {
+            return res.status(400).json({ error: 'Missing uid' });
+        }
+
+        const userDoc = await db.collection('users').doc(uid).get();
+        
+        if (!userDoc.exists) {
+            // Create user with first upload
+            await db.collection('users').doc(uid).set({
+                uploadCount: 1,
+                lastUploadDate: new Date(),
+                isPremium: false,
+                createdAt: new Date()
+            });
+        } else {
+            const userData = userDoc.data();
+            const currentCount = userData.uploadCount || 0;
+            
+            await db.collection('users').doc(uid).update({
+                uploadCount: currentCount + 1,
+                lastUploadDate: new Date()
+            });
+        }
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error('Error incrementing usage:', err);
         res.status(500).json({ error: err.message });
     }
 });

@@ -662,6 +662,32 @@
             background: #64748b !important;
             box-shadow: none !important;
         }
+
+        .btn-credits {
+            background: linear-gradient(135deg, #ec4899, #db2777) !important;
+            color: white !important;
+            border: none !important;
+            padding: 0.6rem 1.2rem !important;
+            font-size: 0.85rem !important;
+            font-weight: 700 !important;
+            border-radius: 0.5rem !important;
+            cursor: pointer !important;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4) !important;
+            transition: all 0.3s ease !important;
+            margin-right: 1rem !important;
+            animation: pulse 2s infinite !important;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); }
+            50% { box-shadow: 0 6px 25px rgba(236, 72, 153, 0.7); }
+        }
+
+        .btn-credits:hover {
+            background: linear-gradient(135deg, #db2777, #be185d) !important;
+            box-shadow: 0 8px 30px rgba(236, 72, 153, 0.6) !important;
+            transform: translateY(-2px) !important;
+        }
         
         .btn-secondary {
             background: #475569 !important;
@@ -729,6 +755,7 @@
     <div class="header">
         <div class="header-brand">🎯 Thumbnail Tester</div>
         <div class="header-auth">
+            <button id="buyCreditsBtn" class="btn-credits" onclick="openBuyCreditsModal()" style="display: none;">💳 Buy Credits (₹49)</button>
             <button id="menuIcon" class="hamburger-btn" style="display: none;">
                 <span class="hamburger-icon"></span>
                 <span class="hamburger-icon"></span>
@@ -891,10 +918,74 @@
         </div>
     </div>
 
+    <!-- Paywall Modal - Free Limit Reached -->
+    <div class="modal-overlay" id="paywallModal">
+        <div class="modal">
+            <h2>🎉 Free Limit Reached!</h2>
+            <p style="margin: 1.5rem 0; color: #cbd5e1;">You've used your 2 free analysis tests. Upgrade to <strong>Premium</strong> for unlimited access.</p>
+            
+            <div style="background: linear-gradient(135deg, #334155, #1e293b); padding: 1.5rem; border-radius: 0.75rem; margin: 1.5rem 0; border: 2px solid #38bdf8;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div>
+                        <div style="font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Premium Benefits</div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: #22c55e;">✅ Unlimited Uploads</div>
+                    </div>
+                    <div style="font-size: 2.5rem;">👑</div>
+                </div>
+                <div style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6;">
+                    ✨ AI Title Suggestions<br>
+                    📊 Combined Analysis<br>
+                    🚀 Priority Support
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0.5rem;">One-time payment</div>
+                <div style="font-size: 2.5rem; font-weight: 700; color: #38bdf8;">₹49</div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button id="closePaywallBtn" class="btn-secondary" onclick="closePaywallModal()" style="flex: 1;">Maybe Later</button>
+                <button id="upgradePaywallBtn" class="btn-primary" onclick="initRazorpayCheckout('₹49', 1, 'paywall')" style="flex: 1; background: linear-gradient(135deg, #22c55e, #16a34a) !important;">💳 Upgrade Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buy Credits Modal - From Header Button -->
+    <div class="modal-overlay" id="buyCreditsModal">
+        <div class="modal">
+            <h2>💳 Get Premium Access</h2>
+            <p style="margin: 1.5rem 0; color: #cbd5e1;">Unlock unlimited analysis and AI-powered suggestions</p>
+            
+            <div style="background: linear-gradient(135deg, #334155, #1e293b); padding: 1.5rem; border-radius: 0.75rem; margin: 1.5rem 0; border: 2px solid #ec4899;">
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 1rem; letter-spacing: 1px; text-transform: uppercase;">Special Offer</div>
+                    <div style="font-size: 3rem; font-weight: 700; color: #ec4899;">₹49</div>
+                    <div style="color: #94a3b8; font-size: 0.9rem; margin-top: 0.5rem;">One-time Lifetime Access</div>
+                </div>
+                <div style="border-top: 1px solid #475569; border-bottom: 1px solid #475569; padding: 1rem 0; margin: 1rem 0; color: #cbd5e1; font-size: 0.9rem; line-height: 1.8;">
+                    ✅ Unlimited Thumbnail Analysis<br>
+                    ✅ AI Title Generator<br>
+                    ✅ Combined Clickability Scores<br>
+                    ✅ 5 Improvement Tips<br>
+                    ✅ Priority Email Support
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button id="closeBuyCreditsBtn" class="btn-secondary" onclick="closeBuyCreditsModal()" style="flex: 1;">Not Now</button>
+                <button id="buyCreditsPayBtn" class="btn-primary" onclick="initRazorpayCheckout('₹49', 1, 'header')" style="flex: 1; background: linear-gradient(135deg, #ec4899, #db2777) !important;">💳 Pay Now</button>
+            </div>
+
+            <p class="modal-footer">🔒 Secure payment powered by Razorpay</p>
+        </div>
+    </div>
+
     <!-- Firebase SDK (Compat - Global firebase object) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <script>
         // Firebase Configuration
@@ -917,11 +1008,15 @@
         const API_BASE_URL = window.location.origin;
         let pendingResult = null;
         let currentUser = null;
+        let userCredits = null;
+        let userStatus = 'free';
+        let uploadCount = 0;
 
         const fileInput = document.getElementById('fileInput');
         const btn = document.getElementById('btn');
         const loader = document.getElementById('loader');
         const authModal = document.getElementById('authModal');
+        const buyCreditsBtn = document.getElementById('buyCreditsBtn');
 
         // Update UI based on auth state
         function updateAuthUI() {
@@ -930,15 +1025,19 @@
             const dropdownMenu = document.getElementById('dropdownMenu');
             
             if (currentUser) {
-                // Show hamburger when logged in
+                // Show hamburger and buy button when logged in
                 menuIcon.style.display = 'flex';
                 signInBtn.style.display = 'none';
+                buyCreditsBtn.style.display = 'block';
                 // Close dropdown menu when auth state changes
                 dropdownMenu.classList.remove('show');
+                // Load user credits
+                loadUserCredits();
             } else {
-                // Hide hamburger and show sign-in button when logged out
+                // Hide hamburger and buy button, show sign-in button when logged out
                 menuIcon.style.display = 'none';
                 signInBtn.style.display = 'block';
+                buyCreditsBtn.style.display = 'none';
                 // Close dropdown menu when auth state changes
                 dropdownMenu.classList.remove('show');
             }
@@ -1003,8 +1102,175 @@
             updateAuthUI();
             if (user) {
                 console.log('User logged in:', user.uid);
+                loadUserCredits();
             }
         });
+
+        // Load User Credits and Limit Info
+        async function loadUserCredits() {
+            if (!currentUser) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/get-user-credits`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid: currentUser.uid })
+                });
+
+                const data = await response.json();
+                userCredits = data.credits || 0;
+                userStatus = data.status || 'free';
+                uploadCount = data.uploadCount || 0;
+
+                console.log(`User Status: ${userStatus}, Uploads: ${uploadCount}, Can Upload: ${data.canUpload}`);
+            } catch (err) {
+                console.error('Error loading credits:', err);
+            }
+        }
+
+        // Check Upload Limit Before Analysis
+        async function checkUploadLimitBeforeAnalysis() {
+            if (!currentUser) {
+                // Non-logged-in users can't analyze
+                alert('Please login first to analyze thumbnails!');
+                return false;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/check-upload-limit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid: currentUser.uid })
+                });
+
+                const data = await response.json();
+
+                if (!data.canUpload) {
+                    // Show paywall modal
+                    document.getElementById('paywallModal').classList.add('active');
+                    return false;
+                }
+
+                return true;
+            } catch (err) {
+                console.error('Error checking upload limit:', err);
+                return true; // Allow anyway if there's an error
+            }
+        }
+
+        // Modal Functions
+        function openBuyCreditsModal() {
+            closeDropdownMenu();
+            document.getElementById('buyCreditsModal').classList.add('active');
+        }
+
+        function closeBuyCreditsModal() {
+            document.getElementById('buyCreditsModal').classList.remove('active');
+        }
+
+        function closePaywallModal() {
+            document.getElementById('paywallModal').classList.remove('active');
+        }
+
+        // Razorpay Checkout
+        async function initRazorpayCheckout(amount, quantity, source) {
+            if (!razorpay) {
+                alert('Payment system not available. Please try again later.');
+                return;
+            }
+
+            if (!currentUser) {
+                alert('Please login first!');
+                document.getElementById('authModal').classList.add('active');
+                return;
+            }
+
+            try {
+                // Create order on backend
+                const response = await fetch(`${API_BASE_URL}/api/create-order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        uid: currentUser.uid,
+                        amount: 49,
+                        creditsToAdd: 1
+                    })
+                });
+
+                const order = await response.json();
+
+                if (!order.orderID) {
+                    throw new Error('Failed to create order');
+                }
+
+                // Razorpay Options
+                const options = {
+                    key: process.env.RAZORPAY_KEY_ID || 'rzp_live_SSeZ82ZN0MikL6',
+                    amount: order.amount,
+                    currency: order.currency,
+                    name: 'Vinay AI Studio',
+                    description: 'Premium Membership',
+                    order_id: order.orderID,
+                    handler: function (response) {
+                        handlePaymentSuccess(response, source);
+                    },
+                    prefill: {
+                        email: currentUser.email || '',
+                        name: currentUser.displayName || 'User'
+                    },
+                    theme: {
+                        color: '#38bdf8'
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.open();
+
+            } catch (err) {
+                console.error('Error initiating checkout:', err);
+                alert('Failed to initiate payment: ' + err.message);
+            }
+        }
+
+        // Handle Payment Success
+        async function handlePaymentSuccess(response, source) {
+            try {
+                // Verify payment on backend
+                const verifyResponse = await fetch(`${API_BASE_URL}/api/verify-payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        uid: currentUser.uid,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_signature: response.razorpay_signature,
+                        creditsToAdd: 1
+                    })
+                });
+
+                const data = await verifyResponse.json();
+
+                if (data.success) {
+                    showToast('✅ Payment successful! You now have Premium access!');
+                    
+                    // Close modals
+                    closeBuyCreditsModal();
+                    closePaywallModal();
+
+                    // Reload credits
+                    loadUserCredits();
+
+                    setTimeout(() => {
+                        showToast('🎉 Ready to analyze unlimited thumbnails!');
+                    }, 1000);
+                } else {
+                    alert('Payment verification failed: ' + data.error);
+                }
+            } catch (err) {
+                console.error('Error verifying payment:', err);
+                alert('Error processing payment: ' + err.message);
+            }
+        }
 
         // File Input Handler - Updated for Drag & Drop
         const dragDropZone = document.getElementById('dragDropZone');
@@ -1229,13 +1495,17 @@
                 return alert("✍️ Please enter a video title!");
             }
 
-            // Check daily usage limit for non-logged-in users
+            // Check if user is logged in
             if (!currentUser) {
-                const usage = getLocalStorageUsage();
-                if (usage.testsToday >= 2) {
-                    alert('You have used your 2 free tests today! Login to get more credits.');
-                    return;
-                }
+                alert('🔐 Please login first to analyze thumbnails!');
+                document.getElementById('authModal').classList.add('active');
+                return;
+            }
+
+            // Check upload limit
+            const canAnalyze = await checkUploadLimitBeforeAnalysis();
+            if (!canAnalyze) {
+                return;
             }
 
             btn.disabled = true;
@@ -1258,11 +1528,16 @@
 
                     displayCombinedResult(analysis);
 
-                    if (currentUser) {
-                        updateTestUsage();
-                    } else {
-                        // Increment local storage for non-logged-in users
-                        incrementLocalStorageUsage();
+                    // Increment usage after successful analysis
+                    try {
+                        await fetch(`${API_BASE_URL}/api/increment-usage`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ uid: currentUser.uid })
+                        });
+                        uploadCount++;
+                    } catch (err) {
+                        console.error('Error incrementing usage:', err);
                     }
 
                 } catch (err) {

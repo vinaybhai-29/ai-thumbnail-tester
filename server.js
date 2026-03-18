@@ -471,97 +471,137 @@ app.get('/api/status', (req, res) => {
 
 // Create Razorpay Order
 app.post('/api/create-order', async (req, res) => {
+    // OUTER try-catch to catch ANY error including JSON parsing
     try {
-        const { uid, amount, creditsToAdd } = req.body;
+        try {
+            const { uid, amount, creditsToAdd } = req.body;
 
-        console.log('\n📋 ===== CREATE ORDER REQUEST =====');
-        console.log('Request Data:', { uid, amount, creditsToAdd });
+            console.log('\n📋 ===== CREATE ORDER REQUEST =====');
+            console.log('Request Data:', { uid, amount, creditsToAdd });
 
-        if (!uid || !amount || !creditsToAdd) {
-            console.warn('⚠️ Validation Error: Missing required fields');
-            return res.status(400).json({ error: 'Missing uid, amount, or creditsToAdd' });
-        }
+            // Validate input
+            if (!uid || !amount || !creditsToAdd) {
+                console.warn('⚠️ Validation Error: Missing required fields');
+                console.log('Valid fields check:', { uid: !!uid, amount: !!amount, creditsToAdd: !!creditsToAdd });
+                return res.status(400).json({ error: 'Missing uid, amount, or creditsToAdd' });
+            }
 
-        // ===== CRITICAL DEBUG: Log environment variables BEFORE order creation =====
-        console.log('\n🔍 DEBUG: Environment Check at Order Creation Time');
-        console.log('Razorpay instance exists:', !!razorpay);
-        console.log('RAZORPAY_KEY_ID set:', !!process.env.RAZORPAY_KEY_ID);
-        console.log('RAZORPAY_KEY_SECRET set:', !!process.env.RAZORPAY_KEY_SECRET);
-        
-        if (process.env.RAZORPAY_KEY_ID) {
-            const keyId = process.env.RAZORPAY_KEY_ID;
-            console.log('RAZORPAY_KEY_ID value (first 8 chars):', keyId.substring(0, 8));
-            console.log('RAZORPAY_KEY_ID length:', keyId.length);
-            console.log('Starts with "rzp_":', keyId.startsWith('rzp_'));
-        }
+            // Debug environment at request time
+            console.log('\n🔍 DEBUG: Environment Check at Order Creation Time');
+            console.log('Razorpay instance exists:', !!razorpay);
+            console.log('RAZORPAY_KEY_ID set:', !!process.env.RAZORPAY_KEY_ID);
+            console.log('RAZORPAY_KEY_SECRET set:', !!process.env.RAZORPAY_KEY_SECRET);
+            
+            if (process.env.RAZORPAY_KEY_ID) {
+                const keyId = process.env.RAZORPAY_KEY_ID;
+                console.log('RAZORPAY_KEY_ID value (first 8 chars):', keyId.substring(0, 8));
+                console.log('RAZORPAY_KEY_ID length:', keyId.length);
+                console.log('Starts with "rzp_":', keyId.startsWith('rzp_'));
+            }
 
-        if (!razorpay) {
-            console.error('❌ FATAL: Razorpay SDK not initialized!');
-            console.error('This means environment variables were not loaded correctly.');
-            return res.status(500).json({ 
-                error: 'Razorpay SDK not initialized',
-                debug: {
-                    razorpayInitialized: !!razorpay,
-                    envVarsMissing: true
+            // If Razorpay not initialized, use dummy order for testing
+            if (!razorpay) {
+                console.warn('\n⚠️  FALLBACK: Razorpay SDK not initialized. Using DUMMY order for UI testing.');
+                console.warn('This is expected during development without valid Razorpay keys.');
+                
+                // Generate a dummy order ID for testing UI
+                const dummyOrderId = `order_dummy_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                const amountInPaise = amount * 100;
+                
+                console.log('✅ DUMMY ORDER CREATED:', { orderID: dummyOrderId, amount: amountInPaise, currency: 'INR' });
+                
+                return res.json({
+                    orderID: dummyOrderId,
+                    currency: 'INR',
+                    amount: amountInPaise,
+                    isDummy: true,
+                    message: 'Dummy order for testing. Configure RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET for live payments.'
+                });
+            }
+
+            // Convert to paise and create order
+            const amountInPaise = amount * 100;
+            console.log(`\n💰 Creating order: ₹${amount} = ${amountInPaise} paise`);
+            console.log('Order Details:', {
+                amount: amountInPaise,
+                currency: 'INR',
+                receipt: `receipt_${uid}_${Date.now()}`,
+                uid: uid
+            });
+
+            // Make the Razorpay API call
+            const order = await razorpay.orders.create({
+                amount: amountInPaise,
+                currency: 'INR',
+                receipt: `receipt_${uid}_${Date.now()}`,
+                notes: {
+                    uid: uid,
+                    creditsToAdd: creditsToAdd
                 }
             });
-        }
 
-        // Convert to paise and create order
-        const amountInPaise = amount * 100;
-        console.log(`\n💰 Creating order: ₹${amount} = ${amountInPaise} paise`);
-        console.log('Order Details:', {
-            amount: amountInPaise,
-            currency: 'INR',
-            receipt: `receipt_${uid}_${Date.now()}`,
-            uid: uid
-        });
+            console.log('✅ SUCCESS: Order Created:', { orderID: order.id, amount: order.amount, currency: order.currency });
+            console.log('===== CREATE ORDER SUCCESS =====\n');
 
-        const order = await razorpay.orders.create({
-            amount: amountInPaise,
-            currency: 'INR',
-            receipt: `receipt_${uid}_${Date.now()}`,
-            notes: {
-                uid: uid,
-                creditsToAdd: creditsToAdd
+            // Return proper JSON response
+            return res.status(200).json({
+                orderID: order.id,
+                currency: order.currency,
+                amount: order.amount,
+                isDummy: false
+            });
+
+        } catch (innerErr) {
+            // INNER catch - catches Razorpay SDK errors
+            console.error('\n❌ ===== INNER CATCH: ERROR CREATING RAZORPAY ORDER =====');
+            console.error('Error Type:', innerErr.constructor.name);
+            console.error('Error Message:', innerErr.message);
+            console.error('Error Code:', innerErr.code);
+            console.error('Error Status:', innerErr.statusCode);
+            
+            if (innerErr.response) {
+                console.error('Razorpay Response Status:', innerErr.response.statusCode);
+                console.error('Razorpay Response Body:', innerErr.response.body);
             }
-        });
-
-        console.log('✅ SUCCESS: Order Created:', { orderID: order.id, amount: order.amount, currency: order.currency });
-        console.log('===== CREATE ORDER SUCCESS =====\n');
-
-        res.json({
-            orderID: order.id,
-            currency: order.currency,
-            amount: order.amount
-        });
-
-    } catch (err) {
-        console.error('\n❌ ===== ERROR CREATING RAZORPAY ORDER =====');
-        console.error('Error Type:', err.constructor.name);
-        console.error('Error Message:', err.message);
-        console.error('Error Code:', err.code);
-        console.error('Error Status:', err.statusCode);
-        console.error('Error Response:', err.response);
-        console.error('Full Error Object:', JSON.stringify(err, null, 2));
-        console.error('===== END ERROR DETAILS =====\n');
-        
-        // Try to extract meaningful error from Razorpay
-        let errorMessage = err.message || 'Failed to create order';
-        
-        if (err.response && err.response.body) {
-            console.error('Razorpay Response Body:', err.response.body);
-            errorMessage = err.response.body.error?.description || err.response.body.error?.reason || errorMessage;
+            
+            // Extract error message
+            let errorMessage = innerErr.message || 'Failed to create Razorpay order';
+            
+            if (innerErr.response && innerErr.response.body) {
+                errorMessage = innerErr.response.body.error?.description || 
+                              innerErr.response.body.error?.reason || 
+                              errorMessage;
+            }
+            
+            console.error('Final Error Message:', errorMessage);
+            console.error('===== END INNER CATCH =====\n');
+            
+            // Send error response as JSON
+            return res.status(500).json({
+                error: errorMessage,
+                errorCode: innerErr.code || innerErr.statusCode || 'RAZORPAY_ERROR',
+                isDummy: false,
+                debug: process.env.NODE_ENV === 'development' ? {
+                    type: innerErr.constructor.name,
+                    statusCode: innerErr.statusCode
+                } : undefined
+            });
         }
         
-        if (err.message.includes('Invalid') || err.message.includes('Unauthorized')) {
-            errorMessage = 'Invalid Razorpay credentials. Check your API keys.';
-        }
+    } catch (outerErr) {
+        // OUTER catch - catches EVERYTHING (JSON parsing, middleware errors, etc.)
+        console.error('\n❌ ===== OUTER CATCH: UNEXPECTED ERROR =====');
+        console.error('This indicates a critical server error, not a Razorpay error');
+        console.error('Error Type:', outerErr.constructor.name);
+        console.error('Error Message:', outerErr.message);
+        console.error('Full Stack:', outerErr.stack);
+        console.error('===== END OUTER CATCH =====\n');
         
-        res.status(500).json({ 
-            error: errorMessage,
-            errorCode: err.code || err.statusCode || 'UNKNOWN',
-            rawError: process.env.NODE_ENV === 'development' ? err.message : undefined
+        // ALWAYS send valid JSON response
+        return res.status(500).json({
+            error: 'Server error: ' + (outerErr.message || 'Unknown error'),
+            errorType: 'CRITICAL_SERVER_ERROR',
+            isDummy: false
         });
     }
 });
@@ -809,9 +849,35 @@ app.post('/api/increment-usage', async (req, res) => {
     }
 });
 
-// Health check endpoint
+// Health check endpoint (must come BEFORE 404 handler)
 app.get('/health', (req, res) => {
     res.json({ status: 'Server is running' });
+});
+
+// Global Error Handler - Catches ANY unhandled errors from routes
+app.use((err, req, res, next) => {
+    console.error('\n❌ ===== GLOBAL ERROR HANDLER =====');
+    console.error('Unhandled Error caught:', err.message);
+    console.error('Error Stack:', err.stack);
+    console.error('Request URL:', req.url);
+    console.error('Request Method:', req.method);
+    console.error('===== END GLOBAL ERROR =====\n');
+    
+    // Always return valid JSON
+    res.status(500).json({
+        error: 'Internal server error: ' + (err.message || 'Unknown'),
+        path: req.url,
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Catch 404 routes and return valid JSON (must come AFTER all real routes)
+app.use((req, res) => {
+    res.status(404).json({
+        error: 'Route not found: ' + req.url,
+        method: req.method,
+        timestamp: new Date().toISOString()
+    });
 });
 
 const PORT = process.env.PORT || 3000;

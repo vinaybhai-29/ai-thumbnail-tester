@@ -148,6 +148,148 @@ app.post('/api/analyze-thumbnail', async (req, res) => {
     }
 });
 
+// Generate Better Titles
+app.post('/api/generate-titles', async (req, res) => {
+    try {
+        const { title, uid } = req.body;
+
+        if (!title || title.trim().length === 0) {
+            return res.status(400).json({ error: 'Missing title input' });
+        }
+
+        const apiKey = process.env.OPENROUTER_API_KEY;
+        if (!apiKey) {
+            return res.status(500).json({ error: 'API key not configured' });
+        }
+
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'google/gemini-2.0-flash-lite-001',
+                messages: [{
+                    role: 'user',
+                    content: `You are a YouTube title expert. Generate 5 catchy, clickable, and SEO-optimized titles based on this input: "${title}". 
+                    
+Return ONLY a JSON object with a 'titles' array containing exactly 5 title strings. Make them engaging, with power words, and between 40-60 characters. No extra text, no markdown.`
+                }]
+            })
+        });
+
+        const data = await response.json();
+        if (data.error) {
+            return res.status(400).json({ error: data.error.message });
+        }
+
+        const aiText = data.choices[0].message.content.replace(/```json|```/g, '').trim();
+        const titles = JSON.parse(aiText);
+
+        res.json(titles);
+    } catch (err) {
+        console.error('Error generating titles:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Combined Analysis (Thumbnail + Title)
+app.post('/api/analyze-combined', async (req, res) => {
+    try {
+        const { base64, mimeType, title, uid } = req.body;
+
+        if (!base64 || !mimeType || !title) {
+            return res.status(400).json({ error: 'Missing base64, mimeType, or title' });
+        }
+
+        // If uid is provided, validate user exists
+        if (uid) {
+            const userDoc = await db.collection('users').doc(uid).get();
+            
+            if (!userDoc.exists) {
+                return res.status(404).json({ error: 'userNotFound', message: 'User not found. Please login first.' });
+            }
+        }
+
+        const apiKey = process.env.OPENROUTER_API_KEY;
+        if (!apiKey) {
+            return res.status(500).json({ error: 'API key not configured' });
+        }
+
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'google/gemini-2.0-flash-lite-001',
+                messages: [{
+                    role: 'user',
+                    content: [
+                        {
+                            type: 'text',
+                            text: `You are a YouTube expert. Analyze this thumbnail and title TOGETHER for clickability potential.
+Title: "${title}"
+
+Return ONLY a JSON object with:
+- 'thumbnailScore' (0-100): CTR score for the thumbnail
+- 'titleScore' (0-100): Clickability score for the title  
+- 'combinedScore' (0-100): Overall combined clickability score
+- 'tips' (array of 5 actionable suggestions to improve clicks)
+- 'analysis' (2-3 sentences about the thumbnail-title synergy)
+
+No extra text, no markdown.`
+                        },
+                        {
+                            type: 'image_url',
+                            image_url: { url: `data:${mimeType};base64,${base64}` }
+                        }
+                    ]
+                }]
+            })
+        });
+
+        const data = await response.json();
+        if (data.error) {
+            return res.status(400).json({ error: data.error.message });
+        }
+
+        const aiText = data.choices[0].message.content.replace(/```json|```/g, '').trim();
+        const analysis = JSON.parse(aiText);
+
+        // Update usage if user is logged in
+        if (uid) {
+            try {
+                const userDoc = await db.collection('users').doc(uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    const todayStr = new Date().toDateString();
+                    let testsUsedToday = userData.testsUsedToday || 0;
+                    
+                    if (userData.lastTestDate !== todayStr) {
+                        testsUsedToday = 0;
+                    }
+                    
+                    await db.collection('users').doc(uid).update({
+                        testsUsedToday: testsUsedToday + 1,
+                        totalTestsUsed: (userData.totalTestsUsed || 0) + 1,
+                        lastTestDate: todayStr
+                    });
+                }
+            } catch (updateErr) {
+                console.error('Error updating test usage:', updateErr);
+            }
+        }
+
+        res.json(analysis);
+    } catch (err) {
+        console.error('Error in combined analysis:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Save user to Firestore after authentication
 app.post('/api/verify-phone-auth', async (req, res) => {
     try {

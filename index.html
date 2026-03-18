@@ -779,8 +779,18 @@
                     }
 
                 } catch (err) {
-                    document.getElementById('errorBox').innerText = "Error: " + err.message;
-                    document.getElementById('errorBox').style.display = 'block';
+                    const errorMsg = err.message;
+                    
+                    // Show popup for login-required errors
+                    if (errorMsg.includes('Please Login First')) {
+                        alert('🔐 ' + errorMsg + '\n\nClick OK to login');
+                        document.getElementById('signInBtn').click();
+                    } else if (errorMsg.includes('No credits')) {
+                        alert('💳 ' + errorMsg);
+                    } else {
+                        document.getElementById('errorBox').innerText = "Error: " + errorMsg;
+                        document.getElementById('errorBox').style.display = 'block';
+                    }
                 } finally {
                     btn.disabled = false;
                     btn.innerText = "🔍 Analyze Now";
@@ -800,12 +810,22 @@
                         },
                         body: JSON.stringify({
                             base64: base64,
-                            mimeType: mimeType
+                            mimeType: mimeType,
+                            uid: currentUser ? currentUser.uid : null
                         })
                     });
 
                     const final = await response.json();
-                    if (!response.ok) throw new Error(final.error || 'API Error');
+                    if (!response.ok) {
+                        // Check if it's a login error
+                        if (final.error === 'userNotFound') {
+                            reject(new Error('Please Login First to use the tool'));
+                        } else if (final.error === 'noCredits') {
+                            reject(new Error('No credits remaining. Please purchase credits to continue.'));
+                        } else {
+                            throw new Error(final.error || 'API Error');
+                        }
+                    }
 
                     resolve(final);
                 } catch (err) {

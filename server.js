@@ -55,10 +55,26 @@ app.use(express.static('.'));
 // Backend API endpoint for thumbnail analysis
 app.post('/api/analyze-thumbnail', async (req, res) => {
     try {
-        const { base64, mimeType } = req.body;
+        const { base64, mimeType, uid } = req.body;
 
         if (!base64 || !mimeType) {
             return res.status(400).json({ error: 'Missing base64 or mimeType' });
+        }
+
+        // If uid is provided, validate user exists and check limits
+        if (uid) {
+            const userDoc = await db.collection('users').doc(uid).get();
+            
+            if (!userDoc.exists) {
+                return res.status(404).json({ error: 'userNotFound', message: 'User not found. Please login first.' });
+            }
+
+            const userData = userDoc.data();
+            const testsRemaining = Math.max(0, (userData.credits || 2) - (userData.testsUsedToday || 0));
+
+            if (testsRemaining <= 0 && userData.credits === 0) {
+                return res.status(403).json({ error: 'noCredits', message: 'No credits remaining. Please purchase credits.' });
+            }
         }
 
         const apiKey = process.env.OPENROUTER_API_KEY;
@@ -98,6 +114,31 @@ app.post('/api/analyze-thumbnail', async (req, res) => {
 
         const aiText = data.choices[0].message.content.replace(/```json|```/g, '').trim();
         const final = JSON.parse(aiText);
+
+        // Update test usage if user is logged in
+        if (uid) {
+            try {
+                const userDoc = await db.collection('users').doc(uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    const todayStr = new Date().toDateString();
+                    let testsUsedToday = userData.testsUsedToday || 0;
+                    
+                    // Reset daily count if it's a new day
+                    if (userData.lastTestDate !== todayStr) {
+                        testsUsedToday = 0;
+                    }
+                    
+                    await db.collection('users').doc(uid).update({
+                        testsUsedToday: testsUsedToday + 1,
+                        totalTestsUsed: (userData.totalTestsUsed || 0) + 1,
+                        lastTestDate: todayStr
+                    });
+                }
+            } catch (updateErr) {
+                console.error('Error updating test usage:', updateErr);
+            }
+        }
 
         res.json(final);
 

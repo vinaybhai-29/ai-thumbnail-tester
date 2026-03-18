@@ -29,15 +29,21 @@ try {
 
 const db = admin.firestore();
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
-});
-
-// Verify Razorpay configuration
-if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-    console.warn('⚠️  Warning: Razorpay keys not configured in environment variables');
+// Initialize Razorpay - only if keys are available
+let razorpay = null;
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+    try {
+        razorpay = new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET
+        });
+        console.log('✅ Razorpay initialized successfully');
+    } catch (error) {
+        console.error('❌ Error initializing Razorpay:', error.message);
+        razorpay = null;
+    }
+} else {
+    console.warn('⚠️  Warning: Razorpay keys not configured in environment variables. Payment routes will not work.');
 }
 
 // Middleware
@@ -212,8 +218,8 @@ app.post('/api/create-order', async (req, res) => {
             return res.status(400).json({ error: 'Missing uid, amount, or creditsToAdd' });
         }
 
-        if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-            return res.status(500).json({ error: 'Razorpay keys not configured' });
+        if (!razorpay) {
+            return res.status(500).json({ error: 'Razorpay is not initialized. Please ensure RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are set in environment variables.' });
         }
 
         // Create order

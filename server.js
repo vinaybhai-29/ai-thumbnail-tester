@@ -31,6 +31,10 @@ const db = admin.firestore();
 
 // Initialize Razorpay - only if keys are available
 let razorpay = null;
+console.log('🔑 Razorpay Setup Check:');
+console.log('   - RAZORPAY_KEY_ID exists:', !!process.env.RAZORPAY_KEY_ID);
+console.log('   - RAZORPAY_KEY_SECRET exists:', !!process.env.RAZORPAY_KEY_SECRET);
+
 if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
     try {
         razorpay = new Razorpay({
@@ -38,6 +42,7 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
             key_secret: process.env.RAZORPAY_KEY_SECRET
         });
         console.log('✅ Razorpay initialized successfully');
+        console.log('   - Key ID starts with:', process.env.RAZORPAY_KEY_ID.substring(0, 8) + '...');
     } catch (error) {
         console.error('❌ Error initializing Razorpay:', error.message);
         razorpay = null;
@@ -392,22 +397,40 @@ app.post('/api/update-test-usage', async (req, res) => {
     }
 });
 
+// Diagnostic: Check if Razorpay is initialized
+app.get('/api/status', (req, res) => {
+    res.json({
+        server: 'running',
+        razorpayInitialized: !!razorpay,
+        razorpayKeyIdSet: !!process.env.RAZORPAY_KEY_ID,
+        razorpayKeySecretSet: !!process.env.RAZORPAY_KEY_SECRET,
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Create Razorpay Order
 app.post('/api/create-order', async (req, res) => {
     try {
         const { uid, amount, creditsToAdd } = req.body;
 
+        console.log('📋 Create Order Request:', { uid, amount, creditsToAdd });
+
         if (!uid || !amount || !creditsToAdd) {
+            console.warn('⚠️ Validation Error: Missing required fields');
             return res.status(400).json({ error: 'Missing uid, amount, or creditsToAdd' });
         }
 
         if (!razorpay) {
+            console.error('❌ Razorpay not initialized. Check RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables.');
             return res.status(500).json({ error: 'Razorpay is not initialized. Please ensure RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are set in environment variables.' });
         }
 
-        // Create order
+        // Convert to paise and create order
+        const amountInPaise = amount * 100;
+        console.log(`💰 Creating order: ₹${amount} = ${amountInPaise} paise`);
+
         const order = await razorpay.orders.create({
-            amount: amount * 100, // Amount in paise
+            amount: amountInPaise,
             currency: 'INR',
             receipt: `receipt_${uid}_${Date.now()}`,
             notes: {
@@ -416,6 +439,8 @@ app.post('/api/create-order', async (req, res) => {
             }
         });
 
+        console.log('✅ Order Created Successfully:', { orderID: order.id, amount: order.amount, currency: order.currency });
+
         res.json({
             orderID: order.id,
             currency: order.currency,
@@ -423,8 +448,17 @@ app.post('/api/create-order', async (req, res) => {
         });
 
     } catch (err) {
-        console.error('Error creating Razorpay order:', err);
-        res.status(500).json({ error: err.message });
+        console.error('❌ Error creating Razorpay order:');
+        console.error('Error Message:', err.message);
+        console.error('Error Code:', err.code);
+        console.error('Error Details:', err);
+        
+        // Return helpful error message
+        const errorMessage = err.message || 'Failed to create order with Razorpay';
+        res.status(500).json({ 
+            error: errorMessage,
+            details: process.env.NODE_ENV === 'development' ? err : undefined
+        });
     }
 });
 

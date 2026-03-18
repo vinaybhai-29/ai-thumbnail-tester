@@ -1252,9 +1252,13 @@
 
                 const order = await response.json();
 
-                if (!order.orderID) {
-                    throw new Error('Failed to create order');
+                // Check for errors in response
+                if (!response.ok || !order.orderID) {
+                    console.error('❌ Order Creation Failed:', order);
+                    throw new Error(order.error || 'Failed to create order. Please try again.');
                 }
+
+                console.log('✅ Order Created:', order.orderID);
 
                 // Razorpay Options
                 const options = {

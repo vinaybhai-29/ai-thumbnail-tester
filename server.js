@@ -228,6 +228,16 @@ app.post('/api/generate-titles', async (req, res) => {
             return res.status(400).json({ error: 'Missing title input' });
         }
 
+        if (!uid) {
+            return res.status(401).json({ error: 'unauthorized', message: 'Missing user ID. Please login first.' });
+        }
+
+        const userDoc = await db.collection('users').doc(uid).get();
+        if (!userDoc.exists) {
+            console.warn(`⚠️ User not found for title generation: ${uid}`);
+            return res.status(404).json({ error: 'userNotFound', message: 'User not found. Please login first.' });
+        }
+
         const apiKey = process.env.OPENROUTER_API_KEY;
         if (!apiKey) {
             return res.status(500).json({ error: 'API key not configured' });

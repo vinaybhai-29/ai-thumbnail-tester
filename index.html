@@ -1470,6 +1470,13 @@
                 return;
             }
 
+            // Check if user is logged in
+            if (!currentUser) {
+                alert('🔐 Please login first to generate titles!');
+                document.getElementById('authModal').classList.add('active');
+                return;
+            }
+
             const btn = document.getElementById('generateTitlesBtn');
             btn.disabled = true;
             btn.innerHTML = '⏳ Generating...';
@@ -1485,7 +1492,10 @@
                 });
 
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Failed to generate titles');
+                if (!response.ok) {
+                    if (data.error === 'userNotFound' || data.error === 'unauthorized') throw new Error('Please Login First to use the tool');
+                    throw new Error(data.error || 'Failed to generate titles');
+                }
 
                 // Display suggested titles
                 const titlesList = document.getElementById('titlesList');
@@ -1506,7 +1516,13 @@
 
             } catch (err) {
                 console.error('Error:', err);
-                alert('Failed to generate titles: ' + err.message);
+                const errorMsg = err.message;
+                if (errorMsg.includes('Please Login First')) {
+                    alert('🔐 ' + errorMsg + '\n\nClick OK to login');
+                    document.getElementById('signInBtn').click();
+                } else {
+                    alert('Failed to generate titles: ' + errorMsg);
+                }
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '💡 Generate Better Titles';

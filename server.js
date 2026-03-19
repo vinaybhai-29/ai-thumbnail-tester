@@ -82,6 +82,11 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static('.'));
 
+// Endpoint to provide Firebase config to client
+app.get('/api/get-firebase-config', (req, res) => {
+    res.json(firebaseConfig);
+});
+
 // Backend API endpoint for thumbnail analysis
 app.post('/api/analyze-thumbnail', async (req, res) => {
     try {

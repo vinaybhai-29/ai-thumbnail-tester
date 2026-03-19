@@ -927,6 +927,7 @@
                         style="width: 100%; padding: 0.75rem; border: 1px solid #475569; background: #0f172a; color: #f8fafc; border-radius: 0.5rem; font-family: inherit; font-size: 0.9rem; margin-bottom: 1rem;"
                     >
                     <button id="emailSignInBtn" class="btn-primary" onclick="signInWithEmail()" style="width: 100%; margin-bottom: 0.75rem;">🔐 Sign In</button>
+                    <button id="testLoginBtn" class="btn-secondary" onclick="signInAsTestUser()" style="width: 100%; margin-bottom: 0.75rem;">🧪 Test Login (for Razorpay)</button>
                     <button onclick="toggleLoginForm()" style="width: 100%; background: #475569; color: #f8fafc; border: none; padding: 0.65rem; border-radius: 0.5rem; cursor: pointer; font-family: inherit; font-size: 0.9rem;">Back to Google</button>
                 </div>
             </div>
@@ -1024,7 +1025,7 @@
             <h2>💰 Refund Policy</h2>
             <p style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.7; text-align: left; margin: 1.5rem 0;">
                 <strong>No refunds once credits are used.</strong><br>
-                For issues, contact our support team at <strong>saifact90@gmail.com</strong> and we'll help resolve your concern within 24 hours.
+                For issues, contact our support team at <strong>0vinaychoudhry@gmail.com</strong> and we'll help resolve your concern within 24 hours.
             </p>
             <div class="modal-buttons" style="margin-top: 2rem;">
                 <button class="btn-primary" onclick="closeModal('refundModal')" style="flex: 1;">✓ Understood</button>
@@ -1038,7 +1039,7 @@
             <h2>📧 Contact Us</h2>
             <div style="background: #0f172a; padding: 1.5rem; border-radius: 0.75rem; margin: 1.5rem 0; border: 1px solid #334155;">
                 <p style="color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 0.75rem 0;">Support Email:</p>
-                <p style="color: #38bdf8; font-weight: 600; font-size: 1rem; margin: 0;">saifact90@gmail.com</p>
+                <p style="color: #38bdf8; font-weight: 600; font-size: 1rem; margin: 0;">0vinaychoudhry@gmail.com</p>
                 <p style="color: #cbd5e1; font-size: 0.9rem; margin: 1rem 0 0 0;">We respond to all inquiries within <strong>24 hours</strong>. Get help with payments, features, or any other questions.</p>
             </div>
             <div class="modal-buttons" style="margin-top: 2rem;">
@@ -1086,13 +1087,13 @@
     <script>
         // Firebase Configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyAhgcivuUJOg824qoklIhOQtyHu4OMM5KM",
-            authDomain: "ai-thumbnail-tester-34d50.firebaseapp.com",
-            projectId: "ai-thumbnail-tester-34d50",
-            storageBucket: "ai-thumbnail-tester-34d50.firebasestorage.app",
-            messagingSenderId: "583406006410",
-            appId: "1:583406006410:web:813c7098d38536b2817d73",
-            measurementId: "G-4M05P71X3M"
+            apiKey: process.env.FIREBASE_API_KEY,
+            authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+            messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+            appId: process.env.FIREBASE_APP_ID,
+            measurementId: process.env.FIREBASE_MEASUREMENT_ID
         };
 
         // Initialize Firebase
@@ -1814,6 +1815,50 @@
                 const signInBtn = document.getElementById('emailSignInBtn');
                 signInBtn.disabled = false;
                 signInBtn.innerText = '🔐 Sign In';
+            }
+        }
+
+        // Sign in as test user
+        async function signInAsTestUser() {
+            try {
+                const email = '0vinaychoudhry@gmail.com';
+                const password = 'Vinay@78';
+
+                const signInBtn = document.getElementById('testLoginBtn');
+                signInBtn.disabled = true;
+                signInBtn.innerText = '🔐 Signing in...';
+
+                const response = await fetch(`${API_BASE_URL}/api/bypass-login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Use the custom token to sign in with Firebase
+                    await auth.signInWithCustomToken(data.token);
+                    
+                    // Close modal and reload page
+                    document.getElementById('authModal').classList.remove('active');
+                    location.reload();
+                } else {
+                    alert('Test login failed: ' + data.error);
+                }
+
+            } catch (err) {
+                console.error('Error signing in as test user:', err);
+                alert('❌ Test login failed: ' + err.message);
+            } finally {
+                const signInBtn = document.getElementById('testLoginBtn');
+                signInBtn.disabled = false;
+                signInBtn.innerText = '🧪 Test Login (for Razorpay)';
             }
         }
 

@@ -19,15 +19,19 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase Admin with service account (if available) or client config
+let db;
 try {
-    admin.initializeApp({
-        projectId: firebaseConfig.projectId,
-    });
+    if (admin.apps.length === 0) {
+        admin.initializeApp({
+            projectId: firebaseConfig.projectId || process.env.FIREBASE_PROJECT_ID,
+        });
+    }
+    db = admin.firestore();
 } catch (error) {
-    console.log('Firebase Admin already initialized or missing service account');
+    console.error('❌ Error Initializing Firebase Admin. Server may not function correctly:', error);
+    // Assign an empty dummy object to prevent instant node.js crashes on Render
+    db = { collection: () => ({ doc: () => ({ get: async () => ({ exists: false }), set: async () => {}, update: async () => {} }), where: () => ({ get: async () => ({ empty: true }) }) }) };
 }
-
-const db = admin.firestore();
 
 // Initialize Razorpay - only if keys are available
 let razorpay = null;
@@ -881,77 +885,6 @@ app.use((err, req, res, next) => {
         path: req.url,
         timestamp: new Date().toISOString()
     });
-});
-
-// Create Test User for Razorpay Review
-app.post('/api/create-test-user', async (req, res) => {
-    try {
-        const testEmail = '0vinaychoudhry@gmail.com';
-        const testPassword = 'Vinay@78';
-
-        // Check if user already exists in Firestore
-        const existingUser = await db.collection('users').where('email', '==', testEmail).get();
-        
-        if (!existingUser.empty) {
-            return res.json({ 
-                success: true, 
-                message: 'Test user already exists',
-                email: testEmail,
-                alreadyExists: true
-            });
-        }
-
-        // Create user in Firebase Auth
-        let uid;
-        try {
-            const userRecord = await admin.auth().createUser({
-                email: testEmail,
-                password: testPassword,
-                displayName: 'Razorpay Test User'
-            });
-            uid = userRecord.uid;
-        } catch (authError) {
-            // If user already exists in Auth, get the UID
-            if (authError.code === 'auth/email-already-exists') {
-                const userRecord = await admin.auth().getUserByEmail(testEmail);
-                uid = userRecord.uid;
-            } else {
-                throw authError;
-            }
-        }
-
-        // Create user document in Firestore
-        await db.collection('users').doc(uid).set({
-            email: testEmail,
-            uid: uid,
-            displayName: 'Razorpay Test User',
-            status: 'Pro',
-            credits: 999,
-            uploadCount: 0,
-            createdAt: new Date().toISOString(),
-            expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year Pro access
-            testUser: true,
-            purpose: 'Razorpay Review'
-        }, { merge: true });
-
-        console.log('✅ Test user created:', testEmail);
-
-        return res.json({ 
-            success: true, 
-            message: 'Test user created successfully',
-            email: testEmail,
-            password: testPassword,
-            uid: uid,
-            note: 'This test user has unlimited Pro access for 1 year'
-        });
-
-    } catch (error) {
-        console.error('Error creating test user:', error);
-        return res.status(500).json({ 
-            error: 'Failed to create test user',
-            details: error.message 
-        });
-    }
 });
 
 // Catch 404 routes and return valid JSON (must come AFTER all real routes)

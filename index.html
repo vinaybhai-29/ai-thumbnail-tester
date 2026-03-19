@@ -911,29 +911,9 @@
             <h2>🎉 Your Report is Ready!</h2>
             <p>Sign in to unlock your thumbnail analysis and get <strong>2 FREE tests daily!</strong></p>
             
-            <!-- Email/Password Login Form -->
-            <div style="margin: 1.5rem 0; display: none;" id="emailPasswordForm">
-                <div style="margin-bottom: 1rem;">
-                    <input 
-                        type="email" 
-                        id="loginEmail" 
-                        placeholder="Enter email" 
-                        style="width: 100%; padding: 0.75rem; border: 1px solid #475569; background: #0f172a; color: #f8fafc; border-radius: 0.5rem; font-family: inherit; font-size: 0.9rem; margin-bottom: 0.75rem;"
-                    >
-                    <input 
-                        type="password" 
-                        id="loginPassword" 
-                        placeholder="Enter password" 
-                        style="width: 100%; padding: 0.75rem; border: 1px solid #475569; background: #0f172a; color: #f8fafc; border-radius: 0.5rem; font-family: inherit; font-size: 0.9rem; margin-bottom: 1rem;"
-                    >
-                    <button id="emailSignInBtn" class="btn-primary" onclick="signInWithEmail()" style="width: 100%; margin-bottom: 0.75rem;">🔐 Sign In</button>
-                    <button onclick="toggleLoginForm()" style="width: 100%; background: #475569; color: #f8fafc; border: none; padding: 0.65rem; border-radius: 0.5rem; cursor: pointer; font-family: inherit; font-size: 0.9rem;">Back to Google</button>
-                </div>
-            </div>
-
             <!-- Google Sign-In Section -->
-            <div style="margin: 2.25rem 0 1.5rem 0;" id="googleSignInSection">
-                <button id="googleSignInBtn" class="btn-google" onclick="signInWithGoogle()">
+            <div style="margin: 1.5rem 0;" id="googleSignInSection">
+                <button id="googleSignInBtn" class="btn-google" style="width: 100%;" onclick="signInWithGoogle()">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <!-- Google G Logo -->
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -943,9 +923,6 @@
                     </svg>
                     Continue with Google
                 </button>
-                <div style="text-align: center; margin-top: 1rem;">
-                    <button onclick="toggleLoginForm()" style="background: none; border: none; color: #38bdf8; cursor: pointer; font-size: 0.85rem; text-decoration: underline; font-family: inherit;">Or sign in with email</button>
-                </div>
             </div>
 
             <p class="info-text">100% Secure & Privacy Focused</p>
@@ -1743,87 +1720,15 @@
                 // Update current user
                 currentUser = user;
 
-                // Show result and close modal
+                // Refresh UI and close modal
                 document.getElementById('authModal').classList.remove('active');
-                showResult(pendingResult);
+                updateAuthUI();
 
                 console.log('User signed in:', user.uid, user.email);
 
             } catch (err) {
                 console.error('Error signing in with Google:', err);
                 alert('Error signing in: ' + err.message);
-            }
-        }
-
-        // Toggle between Google and Email/Password login
-        function toggleLoginForm() {
-            const emailForm = document.getElementById('emailPasswordForm');
-            const googleSection = document.getElementById('googleSignInSection');
-            
-            if (emailForm.style.display === 'none' || emailForm.style.display === '') {
-                emailForm.style.display = 'block';
-                googleSection.style.display = 'none';
-                document.getElementById('loginEmail').focus();
-            } else {
-                emailForm.style.display = 'none';
-                googleSection.style.display = 'block';
-            }
-        }
-
-        // Sign in with email and password
-        async function signInWithEmail() {
-            if (!auth) return alert('System is initializing, please wait a second and try again.');
-            try {
-                const email = document.getElementById('loginEmail').value.trim();
-                const password = document.getElementById('loginPassword').value.trim();
-
-                if (!email) {
-                    return alert('Please enter your email');
-                }
-                if (!password) {
-                    return alert('Please enter your password');
-                }
-
-                const signInBtn = document.getElementById('emailSignInBtn');
-                signInBtn.disabled = true;
-                signInBtn.innerText = '🔐 Signing in...';
-
-                const result = await auth.signInWithEmailAndPassword(email, password);
-                const user = result.user;
-
-                // Save user to backend/Firestore
-                await fetch(`${API_BASE_URL}/api/verify-phone-auth`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        uid: user.uid,
-                        email: user.email,
-                        displayName: user.displayName || 'Email User'
-                    })
-                });
-
-                // Update current user
-                currentUser = user;
-
-                // Clear inputs
-                document.getElementById('loginEmail').value = '';
-                document.getElementById('loginPassword').value = '';
-
-                // Close modal and show result
-                document.getElementById('authModal').classList.remove('active');
-                toggleLoginForm(); // Reset to Google view
-                showResult(pendingResult);
-
-                console.log('User signed in with email:', user.uid, user.email);
-
-            } catch (err) {
-                console.error('Error signing in with email:', err);
-                alert('❌ Sign in failed: ' + err.message);
-                const signInBtn = document.getElementById('emailSignInBtn');
-                signInBtn.disabled = false;
-                signInBtn.innerText = '🔐 Sign In';
             }
         }
 

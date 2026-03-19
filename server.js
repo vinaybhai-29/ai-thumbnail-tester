@@ -942,6 +942,40 @@ app.post('/api/create-test-user', async (req, res) => {
     }
 });
 
+// TODO: Remove this endpoint before production
+// Manual Login Bypass for Razorpay Review
+app.post('/api/bypass-login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        const testEmail = '0vinaychoudhry@gmail.com';
+        const testPassword = 'Vinay@78';
+
+        if (email === testEmail && password === testPassword) {
+            const userRecord = await admin.auth().getUserByEmail(testEmail);
+            const uid = userRecord.uid;
+            
+            // Generate a custom token
+            const customToken = await admin.auth().createCustomToken(uid);
+
+            return res.json({
+                success: true,
+                message: 'Bypass successful',
+                uid: uid,
+                token: customToken
+            });
+        } else {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+    } catch (error) {
+        console.error('Error in bypass-login:', error);
+        return res.status(500).json({
+            error: 'Failed to bypass login',
+            details: error.message
+        });
+    }
+});
+
 // Catch 404 routes and return valid JSON (must come AFTER all real routes)
 app.use((req, res) => {
     res.status(404).json({

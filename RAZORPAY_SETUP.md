@@ -34,29 +34,44 @@ If scripts fail, create manually in Firebase Console:
 2. Select your project
 3. Go to **Authentication** → **Users** → **Create user**
 4. Enter credentials:
-   - **Email**: `saifact90@gmail.com`
+   - **Email**: `0vinaychoudhry@gmail.com`
    - **Password**: `Vinay@78`
 5. Create a Firestore document at `users/{uid}`:
 
 ```javascript
 {
-  "email": "saifact90@gmail.com",
+  "email": "0vinaychoudhry@gmail.com",
   "uid": "{user-uid}",
   "displayName": "Razorpay Test User",
   "status": "Pro",
   "credits": 999,
   "uploadCount": 0,
-  "createdAt": "2026-03-18T00:00:00Z",
-  "expiryDate": "2027-03-18T00:00:00Z",
+  "createdAt": "2026-03-19T00:00:00Z",
+  "expiryDate": "2027-03-19T00:00:00Z",
   "testUser": true,
   "purpose": "Razorpay Review"
 }
 ```
 
+### Option 4: Bypass Login (for Razorpay Review Team)
+
+If the login methods above fail, you can use this endpoint to get a valid authentication token.
+
+```bash
+curl -X POST http://localhost:3000/api/bypass-login \
+-H "Content-Type: application/json" \
+-d '{
+  "email": "0vinaychoudhry@gmail.com",
+  "password": "Vinay@78"
+}'
+```
+
+This will return a JSON response with a `token` that can be used to authenticate with the Firebase SDK.
+
 ## Test User Credentials
 
 ```
-📧 Email:    saifact90@gmail.com
+📧 Email:    0vinaychoudhry@gmail.com
 🔐 Password: Vinay@78
 ⭐ Status:   Pro Member
 ⏱️  Duration: 1 Year Unlimited Access
@@ -72,7 +87,7 @@ If scripts fail, create manually in Firebase Console:
 1. **Option A - Email/Password (Recommended for Testing)**
    - Click sign-in button
    - Click "Or sign in with email" link
-   - Enter: `saifact90@gmail.com` / `Vinay@78`
+   - Enter: `0vinaychoudhry@gmail.com` / `Vinay@78`
    - Click "Sign In"
 
 2. **Option B - Google Sign-In**
@@ -110,7 +125,7 @@ This is normal if running the script multiple times. The script will:
 
 To delete and recreate:
 1. Go to Firebase Console → Authentication
-2. Find and delete `saifact90@gmail.com`
+2. Find and delete `0vinaychoudhry@gmail.com`
 3. Go to Firestore → users collection
 4. Find and delete the user document
 5. Run script again
@@ -146,4 +161,4 @@ With this test user, Razorpay team can fully evaluate your application:
 
 **Questions?** Check server logs: `console.log()` output in Firebase functions
 
-**Last Updated:** March 18, 2026
+**Last Updated:** March 19, 2026

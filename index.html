@@ -789,7 +789,7 @@
                 <button class="dropdown-item" onclick="handleMyCredits()">⭐ My Credits</button>
                 <button class="dropdown-item logout" onclick="handleSignOutClick()">🚪 Sign Out</button>
             </div>
-            <button id="signInBtn" class="btn-primary" onclick="document.getElementById('authModal').classList.add('active')" style="padding: 0.5rem 1.25rem; font-size: 0.9rem; width: auto; margin: 0;">🔐 Sign In</button>
+            <button id="signInBtn" class="btn-primary" onclick="document.getElementById('authModal').classList.add('active')" style="padding: 0.5rem 1.25rem; font-size: 0.9rem; width: auto; margin: 0;" disabled>🔐 Sign In</button>
         </div>
     </div>
     
@@ -913,7 +913,7 @@
             
             <!-- Google Sign-In Section -->
             <div style="margin: 1.5rem 0;" id="googleSignInSection">
-                <button id="googleSignInBtn" class="btn-google" style="width: 100%;" onclick="signInWithGoogle()">
+                <button id="googleSignInBtn" class="btn-google" style="width: 100%;" onclick="signInWithGoogle()" disabled>
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <!-- Google G Logo -->
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -1083,6 +1083,13 @@
                 auth = firebase.auth();
                 db = firebase.firestore();
                 
+                // Enable login buttons now that Firebase is ready
+                const signInBtn = document.getElementById('signInBtn');
+                const googleSignInBtn = document.getElementById('googleSignInBtn');
+                if (signInBtn) signInBtn.disabled = false;
+                if (googleSignInBtn) googleSignInBtn.disabled = false;
+                if (signInBtn) signInBtn.innerText = '🔐 Sign In'; // Update text
+
                 // Check if user is already logged in
                 auth.onAuthStateChanged(async (user) => {
                     try {
@@ -1704,7 +1711,6 @@
 
         // Sign In with Google
         async function signInWithGoogle() {
-            if (!auth) return alert('System is initializing, please wait a second and try again.');
             try {
                 const googleProvider = new firebase.auth.GoogleAuthProvider();
                 const result = await auth.signInWithPopup(googleProvider);

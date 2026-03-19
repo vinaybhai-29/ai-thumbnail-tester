@@ -83,13 +83,10 @@ This will return a JSON response with a `token` that can be used to authenticate
 
 ### How to Login:
 
-1. **Option A - Google Sign-In (Recommended)**
+1. **Google Sign-In (Primary Method)**
    - Click sign-in button
    - Continue with Google
-   - Use your Google account (account must be linked if needed)
-
-2. **Option B - Manual Authentication**
-   - Use the Bypass API script indicated above to grab a session token manually in your browser console if standard Google login is unavailable.
+   - Use a Google account to sign in. If a specific test account is needed, it should be created and its credentials provided.
 
 ## Features Available to Test User
 

@@ -669,9 +669,9 @@ app.post('/api/verify-payment', async (req, res) => {
         const userData = userDoc.data();
         const currentCredits = userData.credits || 0;
 
-        // Update user to Pro status with 28-day expiry
+        // Update user to Pro status with 30-day expiry
         const expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + 28);
+        expiryDate.setDate(expiryDate.getDate() + 30);
 
         console.log(`💳 Payment verified for user ${uid}. Setting Pro status, expires: ${expiryDate}`);
 

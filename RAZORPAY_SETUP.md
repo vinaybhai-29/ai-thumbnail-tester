@@ -15,8 +15,7 @@ node setup-test-user.js
 This will:
 - ✅ Create test user in Firebase Auth
 - ✅ Set up Firestore user document
-- ✅ Grant Pro status (1 year unlimited access)
-- ✅ Display confirmation message
+- ✅ Grant Pro status (on message
 
 ### Option 2: Manual API Call
 
@@ -47,8 +46,7 @@ If scripts fail, create manually in Firebase Console:
   "credits": 999,
   "uploadCount": 0,
   "createdAt": "2026-03-19T00:00:00Z",
-  "expiryDate": "2027-03-19T00:00:00Z",
-  "testUser": true,
+  "expiryDate": "202
   "purpose": "Razorpay Review"
 }
 ```
@@ -74,9 +72,8 @@ This will return a JSON response with a `token` that can be used to authenticate
 📧 Email:    0vinaychoudhry@gmail.com
 🔐 Password: Vinay@78
 ⭐ Status:   Pro Member
-⏱️  Duration: 1 Year Unlimited Access
+⏱️  Duration: 30 Days Unlimited Access
 ```
-
 ## Login Methods Available
 
 ✅ **Google Sign-In** - Works with linked Gmail account

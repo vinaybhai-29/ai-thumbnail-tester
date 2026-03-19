@@ -552,7 +552,7 @@ app.post('/api/create-order', async (req, res) => {
             console.log('Order Details:', {
                 amount: amountInPaise,
                 currency: 'INR',
-                receipt: `receipt_${uid}_${Date.now()}`,
+                receipt: `rcpt_${Date.now()}`,
                 uid: uid
             });
 
@@ -560,7 +560,7 @@ app.post('/api/create-order', async (req, res) => {
             const order = await razorpay.orders.create({
                 amount: amountInPaise,
                 currency: 'INR',
-                receipt: `receipt_${uid}_${Date.now()}`,
+                receipt: `rcpt_${Date.now()}`,
                 notes: {
                     uid: uid,
                     creditsToAdd: creditsToAdd

@@ -29,8 +29,19 @@ try {
     db = admin.firestore();
 } catch (error) {
     console.error('❌ Error Initializing Firebase Admin. Server may not function correctly:', error);
-    // Assign an empty dummy object to prevent instant node.js crashes on Render
-    db = { collection: () => ({ doc: () => ({ get: async () => ({ exists: false }), set: async () => {}, update: async () => {} }), where: () => ({ get: async () => ({ empty: true }) }) }) };
+    // Bulletproof dummy db object to prevent "data is not a function" crashes
+    const dummyDoc = {
+        get: async () => ({ exists: false, data: () => ({}) }),
+        set: async () => {},
+        update: async () => {},
+        collection: () => dummyCollection
+    };
+    const dummyCollection = {
+        doc: () => dummyDoc,
+        add: async () => ({ id: 'dummy_id' }),
+        where: () => ({ get: async () => ({ empty: true, docs: [] }) })
+    };
+    db = { collection: () => dummyCollection };
 }
 
 // Initialize Razorpay - only if keys are available
@@ -897,7 +908,7 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Server running on http://localhost:${PORT}`);
     console.log(`📸 API endpoint: POST http://localhost:${PORT}/api/analyze-thumbnail`);
     console.log(`🔐 Firebase initialized for project: ${firebaseConfig.projectId}`);

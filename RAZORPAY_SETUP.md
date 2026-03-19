@@ -80,20 +80,16 @@ This will return a JSON response with a `token` that can be used to authenticate
 ## Login Methods Available
 
 ✅ **Google Sign-In** - Works with linked Gmail account
-✅ **Email/Password** - Direct login with credentials above
 
 ### How to Login:
 
-1. **Option A - Email/Password (Recommended for Testing)**
-   - Click sign-in button
-   - Click "Or sign in with email" link
-   - Enter: `0vinaychoudhry@gmail.com` / `Vinay@78`
-   - Click "Sign In"
-
-2. **Option B - Google Sign-In**
+1. **Option A - Google Sign-In (Recommended)**
    - Click sign-in button
    - Continue with Google
    - Use your Google account (account must be linked if needed)
+
+2. **Option B - Manual Authentication**
+   - Use the Bypass API script indicated above to grab a session token manually in your browser console if standard Google login is unavailable.
 
 ## Features Available to Test User
 

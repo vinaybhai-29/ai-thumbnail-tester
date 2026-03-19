@@ -778,7 +778,7 @@
     <div class="header">
         <div class="header-brand">🎯 Thumbnail Tester</div>
         <div class="header-auth">
-            <button id="buyCreditsBtn" class="btn-credits" onclick="openBuyCreditsModal()" style="display: none;">� Upgrade to Pro</button>
+            <button id="buyCreditsBtn" class="btn-credits" onclick="openBuyCreditsModal()" style="display: none;">🚀 Upgrade to Pro</button>
             <button id="menuIcon" class="hamburger-btn" style="display: none;">
                 <span class="hamburger-icon"></span>
                 <span class="hamburger-icon"></span>
@@ -1061,19 +1061,19 @@
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <script>
-        const API_BASE_URL = window.location.origin;
-        let app, auth, db;
-        let pendingResult = null;
-        let currentUser = null;
-        let userCredits = null;
-        let userStatus = 'free';
-        let uploadCount = 0;
+        var API_BASE_URL = window.location.origin;
+        var app = null, auth = null, db = null;
+        var pendingResult = null;
+        var currentUser = null;
+        var userCredits = null;
+        var userStatus = 'free';
+        var uploadCount = 0;
 
-        const fileInput = document.getElementById('fileInput');
-        const btn = document.getElementById('btn');
-        const loader = document.getElementById('loader');
-        const authModal = document.getElementById('authModal');
-        const buyCreditsBtn = document.getElementById('buyCreditsBtn');
+        var fileInput = document.getElementById('fileInput');
+        var btn = document.getElementById('btn');
+        var loader = document.getElementById('loader');
+        var authModal = document.getElementById('authModal');
+        var buyCreditsBtn = document.getElementById('buyCreditsBtn');
 
         // Initialize Firebase Asynchronously
         fetch(`${API_BASE_URL}/api/get-firebase-config`)
@@ -1085,11 +1085,15 @@
                 
                 // Check if user is already logged in
                 auth.onAuthStateChanged(async (user) => {
-                    currentUser = user;
-                    updateAuthUI();
-                    if (user) {
-                        console.log('User logged in:', user.uid);
-                        loadUserCredits();
+                    try {
+                        currentUser = user;
+                        updateAuthUI();
+                        if (user) {
+                            console.log('User logged in:', user.uid);
+                            await loadUserCredits();
+                        }
+                    } catch (err) {
+                        console.error('Error handling auth state change:', err);
                     }
                 });
             })
@@ -1097,26 +1101,28 @@
 
         // Update UI based on auth state
         function updateAuthUI() {
-            const menuIcon = document.getElementById('menuIcon');
-            const signInBtn = document.getElementById('signInBtn');
-            const dropdownMenu = document.getElementById('dropdownMenu');
-            
-            if (currentUser) {
-                // Show hamburger and buy button when logged in
-                menuIcon.style.display = 'flex';
-                signInBtn.style.display = 'none';
-                buyCreditsBtn.style.display = 'block';
-                // Close dropdown menu when auth state changes
-                dropdownMenu.classList.remove('show');
-                // Load user credits
-                loadUserCredits();
-            } else {
-                // Hide hamburger and buy button, show sign-in button when logged out
-                menuIcon.style.display = 'none';
-                signInBtn.style.display = 'block';
-                buyCreditsBtn.style.display = 'none';
-                // Close dropdown menu when auth state changes
-                dropdownMenu.classList.remove('show');
+            try {
+                var menuIcon = document.getElementById('menuIcon');
+                var signInBtn = document.getElementById('signInBtn');
+                var dropdownMenu = document.getElementById('dropdownMenu');
+                
+                if (currentUser) {
+                    // Show hamburger and buy button when logged in
+                    if (menuIcon) menuIcon.style.display = 'flex';
+                    if (signInBtn) signInBtn.style.display = 'none';
+                    if (buyCreditsBtn) buyCreditsBtn.style.display = 'block';
+                    // Close dropdown menu when auth state changes
+                    if (dropdownMenu) dropdownMenu.classList.remove('show');
+                } else {
+                    // Hide hamburger and buy button, show sign-in button when logged out
+                    if (menuIcon) menuIcon.style.display = 'none';
+                    if (signInBtn) signInBtn.style.display = 'block';
+                    if (buyCreditsBtn) buyCreditsBtn.style.display = 'none';
+                    // Close dropdown menu when auth state changes
+                    if (dropdownMenu) dropdownMenu.classList.remove('show');
+                }
+            } catch (e) {
+                console.error("UI update error:", e);
             }
         }
         

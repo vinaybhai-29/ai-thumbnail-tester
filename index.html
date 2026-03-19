@@ -1084,25 +1084,8 @@
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <script>
-    (async () => {
         const API_BASE_URL = window.location.origin;
         let app, auth, db;
-
-        try {
-            const configResponse = await fetch(`${API_BASE_URL}/api/get-firebase-config`);
-            if (!configResponse.ok) throw new Error('Failed to fetch Firebase config');
-            const firebaseConfig = await configResponse.json();
-
-            // Initialize Firebase
-            app = firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth();
-            db = firebase.firestore();
-        } catch (error) {
-            console.error("Fatal Error: Could not initialize application.", error);
-            document.body.innerHTML = `<div style="color: red; text-align: center; padding: 2rem;"><h1>Application Error</h1><p>Could not connect to services. Please try again later.</p></div>`;
-            return;
-        }
-
         let pendingResult = null;
         let currentUser = null;
         let userCredits = null;
@@ -1114,6 +1097,26 @@
         const loader = document.getElementById('loader');
         const authModal = document.getElementById('authModal');
         const buyCreditsBtn = document.getElementById('buyCreditsBtn');
+
+        // Initialize Firebase Asynchronously
+        fetch(`${API_BASE_URL}/api/get-firebase-config`)
+            .then(res => res.json())
+            .then(config => {
+                app = firebase.initializeApp(config);
+                auth = firebase.auth();
+                db = firebase.firestore();
+                
+                // Check if user is already logged in
+                auth.onAuthStateChanged(async (user) => {
+                    currentUser = user;
+                    updateAuthUI();
+                    if (user) {
+                        console.log('User logged in:', user.uid);
+                        loadUserCredits();
+                    }
+                });
+            })
+            .catch(err => console.error("Firebase init failed:", err));
 
         // Update UI based on auth state
         function updateAuthUI() {
@@ -1193,16 +1196,6 @@
             });
         }
         
-        // Check if user is already logged in
-        auth.onAuthStateChanged(async (user) => {
-            currentUser = user;
-            updateAuthUI();
-            if (user) {
-                console.log('User logged in:', user.uid);
-                loadUserCredits();
-            }
-        });
-
         // Load User Credits and Limit Info
         async function loadUserCredits() {
             if (!currentUser) return;
@@ -1728,6 +1721,7 @@
 
         // Sign In with Google
         async function signInWithGoogle() {
+            if (!auth) return alert('System is initializing, please wait a second and try again.');
             try {
                 const googleProvider = new firebase.auth.GoogleAuthProvider();
                 const result = await auth.signInWithPopup(googleProvider);
@@ -1778,6 +1772,7 @@
 
         // Sign in with email and password
         async function signInWithEmail() {
+            if (!auth) return alert('System is initializing, please wait a second and try again.');
             try {
                 const email = document.getElementById('loginEmail').value.trim();
                 const password = document.getElementById('loginPassword').value.trim();
@@ -1899,7 +1894,6 @@
                 });
             }
         }
-    })();
     </script>
 
     <!-- Simple Hamburger Menu Toggle -->

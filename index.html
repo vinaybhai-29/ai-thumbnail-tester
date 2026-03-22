@@ -424,24 +424,6 @@
             display: none;
         }
 
-        /* A/B Test Toggle Button */
-        .btn-toggle-ab {
-            background: transparent; 
-            color: #38bdf8; 
-            border: 1px dashed #334155; 
-            padding: 0.5rem 1rem; 
-            border-radius: 0.5rem; 
-            cursor: pointer; 
-            font-size: 0.9rem; 
-            transition: all 0.3s ease; 
-            width: auto; 
-            margin: 0 auto; 
-            display: inline-block;
-        }
-        .btn-toggle-ab:hover { background: #1e293b; border-color: #38bdf8; }
-        .btn-toggle-ab.remove { color: #ef4444; border-color: #ef4444; }
-        .btn-toggle-ab.remove:hover { background: #450a0a; border-color: #f87171; }
-
         /* Title Section */
         .title-section {
             background: #334155;
@@ -563,6 +545,11 @@
                 transform: translateX(-50%) translateY(0);
                 opacity: 1;
             }
+        }
+
+        @keyframes slideInBox {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .toast.show {
@@ -871,8 +858,9 @@
         </div>
 
         <div class="tabs-container">
-            <button class="tab-btn active" id="tabABTest" onclick="switchTab('ab-testing')">📊 A/B Testing</button>
-            <button class="tab-btn" id="tabTitleGen" onclick="switchTab('title-generator')">✍️ Title Generator</button>
+            <button class="tab-btn active" id="tabSingle" onclick="switchTab('single')">🖼️ Single Check</button>
+            <button class="tab-btn" id="tabABTest" onclick="switchTab('ab-testing')">📊 A/B Testing</button>
+            <button class="tab-btn" id="tabTitleGen" onclick="switchTab('title-generator')">✍️ Title Gen</button>
         </div>
 
         <div class="upload-container" id="abTestingContainer">
@@ -900,12 +888,6 @@
                     <img id="previewB">
                 </div>
             </div>
-        </div>
-
-        <div id="addThumbnailBContainer" style="text-align: center; margin-top: -0.5rem; margin-bottom: 1.5rem;">
-            <button id="addThumbnailBBtn" class="btn-toggle-ab" onclick="toggleThumbnailB()">
-                + Add Thumbnail B for A/B Testing
-            </button>
         </div>
 
         <div id="titleGeneratorContainer" style="display: none; text-align: left; margin: 1.5rem 0;">
@@ -1137,7 +1119,7 @@
         var userCredits = null;
         var userStatus = 'free';
         var uploadCount = 0;
-        var currentTab = 'ab-testing';
+        var currentTab = 'single';
 
         var fileInputA = document.getElementById('fileInputA');
         var fileInputB = document.getElementById('fileInputB');
@@ -1532,40 +1514,33 @@
         function switchTab(tab) {
             currentTab = tab;
             
-            if (tab === 'ab-testing') {
+            document.getElementById('tabSingle').classList.remove('active');
+            document.getElementById('tabABTest').classList.remove('active');
+            document.getElementById('tabTitleGen').classList.remove('active');
+            
+            const abContainer = document.getElementById('abTestingContainer');
+            const titleGen = document.getElementById('titleGeneratorContainer');
+            const wrapperB = document.getElementById('wrapperB');
+            
+            if (tab === 'single') {
+                document.getElementById('tabSingle').classList.add('active');
+                abContainer.style.display = 'flex';
+                titleGen.style.display = 'none';
+                wrapperB.style.display = 'none';
+            } else if (tab === 'ab-testing') {
                 document.getElementById('tabABTest').classList.add('active');
-                document.getElementById('tabTitleGen').classList.remove('active');
-                document.getElementById('abTestingContainer').style.display = 'flex';
-                document.getElementById('addThumbnailBContainer').style.display = 'block';
-                document.getElementById('titleGeneratorContainer').style.display = 'none';
+                abContainer.style.display = 'flex';
+                titleGen.style.display = 'none';
+                wrapperB.style.display = 'flex';
+                wrapperB.style.animation = 'slideInBox 0.4s ease forwards';
             } else {
                 document.getElementById('tabTitleGen').classList.add('active');
-                document.getElementById('tabABTest').classList.remove('active');
-                document.getElementById('abTestingContainer').style.display = 'none';
-                document.getElementById('addThumbnailBContainer').style.display = 'none';
-                document.getElementById('titleGeneratorContainer').style.display = 'block';
+                abContainer.style.display = 'none';
+                titleGen.style.display = 'block';
             }
             
             document.getElementById('errorBox').style.display = 'none';
             document.getElementById('combinedResult').classList.remove('show');
-        }
-
-        function toggleThumbnailB() {
-            const wrapperB = document.getElementById('wrapperB');
-            const btn = document.getElementById('addThumbnailBBtn');
-            
-            if (wrapperB.style.display === 'none') {
-                wrapperB.style.display = 'flex';
-                btn.innerHTML = '− Remove Thumbnail B';
-                btn.classList.add('remove');
-            } else {
-                wrapperB.style.display = 'none';
-                btn.innerHTML = '+ Add Thumbnail B for A/B Testing';
-                btn.classList.remove('remove');
-                fileInputB.value = '';
-                previewB.src = '';
-                previewB.style.display = 'none';
-            }
         }
 
         // Analyze function
@@ -1601,6 +1576,10 @@
                 return alert("📸 Please select at least Thumbnail A!");
             }
 
+            if (currentTab === 'ab-testing' && !fileInputB.files[0]) {
+                return alert("📸 Please select Thumbnail B for A/B Testing!");
+            }
+
             if (!currentUser) {
                 document.getElementById('authModal').classList.add('active');
                 return;
@@ -1624,7 +1603,7 @@
                 const base64A = readerA.result.split(',')[1];
                 const mimeTypeA = fileInputA.files[0].type;
 
-                if (fileInputB.files[0]) {
+                if (currentTab === 'ab-testing' && fileInputB.files[0]) {
                     const readerB = new FileReader();
                     readerB.readAsDataURL(fileInputB.files[0]);
                     readerB.onload = async () => {

@@ -827,6 +827,11 @@
         <h1>✨ Vinay AI Studio</h1>
         <p style="color: #94a3b8;">Optimize Your YouTube Content</p>
 
+        <!-- Free Trials Badge -->
+        <div style="text-align: center; margin-bottom: 1rem;">
+            <div class="free-trials-badge" id="trialBadge">🎁 2 Free Daily Trials</div>
+        </div>
+
         <!-- A/B Thumbnail Testing Section -->
         <div class="upload-container">
             <div class="drop-zone-wrapper">
@@ -853,11 +858,6 @@
                     <img id="previewB">
                 </div>
             </div>
-        </div>
-
-        <!-- Free Trials Badge -->
-        <div style="text-align: center;">
-            <div class="free-trials-badge" id="freeTrialsBadge">🎁 2 Free Daily Trials</div>
         </div>
 
         <!-- Compare Button -->
@@ -1276,6 +1276,20 @@
 
                 console.log(`User Status: ${userStatus}, Uploads: ${uploadCount}, Days Remaining: ${data.daysRemaining}`);
 
+                const badge = document.getElementById('trialBadge');
+                if (badge && data) {
+                    if (data.status === 'Pro') {
+                        badge.innerHTML = "✨ Pro Member: Unlimited Analysis";
+                        badge.style.background = "linear-gradient(45deg, #FFD700, #FFA500)";
+                        badge.style.color = "#000";
+                    } else {
+                        const remaining = data.freeTrialsRemaining !== undefined ? data.freeTrialsRemaining : 2;
+                        badge.innerHTML = `🎁 ${remaining} Free Daily Trial${remaining === 1 ? '' : 's'}`;
+                        badge.style.background = ""; // Revert to CSS default
+                        badge.style.color = ""; // Revert to CSS default
+                    }
+                }
+
                 // Update header based on Pro status
                 updateHeaderUI(data);
             } catch (err) {
@@ -1301,19 +1315,11 @@
                 
                 proBadge.innerHTML = `✅ Pro Member<div class="pro-expiry">Ends in ${creditsData.daysRemaining} day${creditsData.daysRemaining !== 1 ? 's' : ''}</div>`;
                 proBadge.style.display = 'flex';
-                
-                // Hide free trials badge for Pro members
-                const badge = document.getElementById('freeTrialsBadge');
-                if (badge) badge.style.display = 'none';
             } else {
                 // Show upgrade button
                 const proBadge = document.getElementById('proBadge');
                 if (proBadge) proBadge.style.display = 'none';
                 buyCreditsBtn.style.display = 'block';
-                
-                // Ensure badge is visible for free users
-                const badge = document.getElementById('freeTrialsBadge');
-                if (badge) badge.style.display = 'inline-block';
             }
         }
 
@@ -1614,6 +1620,9 @@
                 displayCombinedResult(analysis);
 
                 uploadCount++;
+                
+                // Instantly update badge count after analysis
+                if (currentUser) loadUserCredits();
 
             } catch (err) {
                 const errorMsg = err.message;

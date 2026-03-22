@@ -1105,6 +1105,29 @@
                 if (googleSignInBtn) googleSignInBtn.disabled = false;
                 if (signInBtn) signInBtn.innerText = '🔐 Sign In'; // Update text
 
+                // Handle Redirect Result for Mobile Compatibility
+                auth.getRedirectResult().then(async (result) => {
+                    if (result && result.user) {
+                        const user = result.user;
+                        // Save user to backend/Firestore
+                        await fetch(`${API_BASE_URL}/api/verify-phone-auth`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                uid: user.uid,
+                                email: user.email,
+                                displayName: user.displayName
+                            })
+                        });
+                        console.log('User signed in via redirect:', user.uid, user.email);
+                        document.getElementById('authModal').classList.remove('active');
+                    }
+                }).catch(err => {
+                    console.error('Error during Google redirect sign in:', err);
+                });
+
                 // Check if user is already logged in
                 auth.onAuthStateChanged(async (user) => {
                     try {
@@ -1692,34 +1715,11 @@
         async function signInWithGoogle() {
             try {
                 const googleProvider = new firebase.auth.GoogleAuthProvider();
-                const result = await auth.signInWithPopup(googleProvider);
-                const user = result.user;
-
-                // Save user to backend/Firestore
-                await fetch(`${API_BASE_URL}/api/verify-phone-auth`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        uid: user.uid,
-                        email: user.email,
-                        displayName: user.displayName
-                    })
-                });
-
-                // Update current user
-                currentUser = user;
-
-                // Refresh UI and close modal
-                document.getElementById('authModal').classList.remove('active');
-                updateAuthUI();
-
-                console.log('User signed in:', user.uid, user.email);
-
+                // Using Redirect instead of Popup for maximum mobile browser compatibility
+                auth.signInWithRedirect(googleProvider);
             } catch (err) {
-                console.error('Error signing in with Google:', err);
-                alert('Error signing in: ' + err.message);
+                console.error('Error starting Google sign in redirect:', err);
+                alert('Error starting sign in: ' + err.message);
             }
         }
 

@@ -1193,7 +1193,10 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/api/get-user-credits`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-user-id': currentUser ? currentUser.uid : ''
+                    },
                     body: JSON.stringify({ uid: currentUser.uid })
                 });
 
@@ -1247,7 +1250,10 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/api/check-upload-limit`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-user-id': currentUser ? currentUser.uid : ''
+                    },
                     body: JSON.stringify({ uid: currentUser.uid })
                 });
 
@@ -1484,7 +1490,10 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/api/generate-titles`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-user-id': currentUser ? currentUser.uid : ''
+                    },
                     body: JSON.stringify({
                         title: titleText,
                         uid: currentUser ? currentUser.uid : null
@@ -1597,7 +1606,10 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/api/analyze-combined`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-user-id': currentUser ? currentUser.uid : ''
+                    },
                     body: JSON.stringify({
                         base64: base64,
                         mimeType: mimeType,
@@ -1672,16 +1684,8 @@
                     displayCombinedResult(analysis);
 
                     // Increment usage after successful analysis
-                    try {
-                        await fetch(`${API_BASE_URL}/api/increment-usage`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ uid: currentUser.uid })
-                        });
-                        uploadCount++;
-                    } catch (err) {
-                        console.error('Error incrementing usage:', err);
-                    }
+                    // Note: Backend /api/analyze-combined already strictly increments daily usage limits
+                    uploadCount++;
 
                 } catch (err) {
                     const errorMsg = err.message;

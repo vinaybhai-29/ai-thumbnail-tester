@@ -112,7 +112,8 @@ app.get('/api/get-payment-config', (req, res) => {
 // Backend API endpoint for thumbnail analysis
 app.post('/api/analyze-thumbnail', async (req, res) => {
     try {
-        const { base64, mimeType, uid } = req.body;
+        const { base64, mimeType } = req.body;
+        const uid = req.body.uid || req.headers['x-user-id'];
 
         if (!base64 || !mimeType) {
             return res.status(400).json({ error: 'Missing base64 or mimeType' });
@@ -120,11 +121,18 @@ app.post('/api/analyze-thumbnail', async (req, res) => {
 
         // If uid is provided, validate user exists and check limits
         if (uid) {
-            const userDoc = await db.collection('users').doc(uid).get();
+            let userDoc = await db.collection('users').doc(uid).get();
             
             if (!userDoc.exists) {
-                console.warn(`⚠️ User not found: ${uid}`);
-                return res.status(404).json({ error: 'userNotFound', message: 'User not found. Please login first.' });
+                console.warn(`⚠️ User not found: ${uid}. Auto-creating document.`);
+                await db.collection('users').doc(uid).set({
+                    createdAt: new Date(),
+                    testsUsedToday: 0,
+                    totalTestsUsed: 0,
+                    lastTestDate: new Date().toDateString(),
+                    status: 'free'
+                });
+                userDoc = await db.collection('users').doc(uid).get();
             }
             
             const userData = userDoc.data();
@@ -222,7 +230,8 @@ app.post('/api/analyze-thumbnail', async (req, res) => {
 // Generate Better Titles
 app.post('/api/generate-titles', async (req, res) => {
     try {
-        const { title, uid } = req.body;
+        const { title } = req.body;
+        const uid = req.body.uid || req.headers['x-user-id'];
 
         if (!title || title.trim().length === 0) {
             return res.status(400).json({ error: 'Missing title input' });
@@ -232,10 +241,17 @@ app.post('/api/generate-titles', async (req, res) => {
             return res.status(401).json({ error: 'unauthorized', message: 'Missing user ID. Please login first.' });
         }
 
-        const userDoc = await db.collection('users').doc(uid).get();
+        let userDoc = await db.collection('users').doc(uid).get();
         if (!userDoc.exists) {
-            console.warn(`⚠️ User not found for title generation: ${uid}`);
-            return res.status(404).json({ error: 'userNotFound', message: 'User not found. Please login first.' });
+            console.warn(`⚠️ User not found for title generation: ${uid}. Auto-creating document.`);
+            await db.collection('users').doc(uid).set({
+                createdAt: new Date(),
+                testsUsedToday: 0,
+                totalTestsUsed: 0,
+                lastTestDate: new Date().toDateString(),
+                status: 'free'
+            });
+            userDoc = await db.collection('users').doc(uid).get();
         }
 
         const apiKey = process.env.OPENROUTER_API_KEY;
@@ -243,6 +259,7 @@ app.post('/api/generate-titles', async (req, res) => {
             return res.status(500).json({ error: 'API key not configured' });
         }
 
+        // NO GOOGLE SDK USED. Strict Fetch to OpenRouter using existing key.
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -266,8 +283,15 @@ Return ONLY a JSON object with a 'titles' array containing exactly 5 title strin
         }
 
         const aiText = data.choices[0].message.content.replace(/```json|```/g, '').trim();
-        const titles = JSON.parse(aiText);
-
+        
+        let titles;
+        try {
+            titles = JSON.parse(aiText);
+        } catch (parseErr) {
+            console.error('Failed to parse AI response for titles:', aiText);
+            return res.status(500).json({ error: 'Failed to generate valid titles. Please try again.' });
+        }
+        
         res.json(titles);
     } catch (err) {
         console.error('Error generating titles:', err);
@@ -278,7 +302,8 @@ Return ONLY a JSON object with a 'titles' array containing exactly 5 title strin
 // Combined Analysis (Thumbnail + Title)
 app.post('/api/analyze-combined', async (req, res) => {
     try {
-        const { base64, mimeType, title, uid } = req.body;
+        const { base64, mimeType, title } = req.body;
+        const uid = req.body.uid || req.headers['x-user-id'];
 
         if (!base64 || !mimeType || !title) {
             return res.status(400).json({ error: 'Missing base64, mimeType, or title' });
@@ -286,11 +311,18 @@ app.post('/api/analyze-combined', async (req, res) => {
 
         // If uid is provided, validate user exists
         if (uid) {
-            const userDoc = await db.collection('users').doc(uid).get();
+            let userDoc = await db.collection('users').doc(uid).get();
             
             if (!userDoc.exists) {
-                console.warn(`⚠️ User not found for combined analysis: ${uid}`);
-                return res.status(404).json({ error: 'userNotFound', message: 'User not found. Please login first.' });
+                console.warn(`⚠️ User not found for combined analysis: ${uid}. Auto-creating document.`);
+                await db.collection('users').doc(uid).set({
+                    createdAt: new Date(),
+                    testsUsedToday: 0,
+                    totalTestsUsed: 0,
+                    lastTestDate: new Date().toDateString(),
+                    status: 'free'
+                });
+                userDoc = await db.collection('users').doc(uid).get();
             }
             
             const userData = userDoc.data();
@@ -718,7 +750,7 @@ app.post('/api/verify-payment', async (req, res) => {
 // Get User Credits and Usage Status
 app.post('/api/get-user-credits', async (req, res) => {
     try {
-        const { uid } = req.body;
+        const uid = req.body.uid || req.headers['x-user-id'];
 
         if (!uid) {
             return res.status(400).json({ error: 'Missing uid' });
@@ -739,8 +771,14 @@ app.post('/api/get-user-credits', async (req, res) => {
 
         let userData = userDoc.data();
         let currentStatus = userData.status || 'free';
-        const uploadCount = userData.uploadCount || 0;
-        const freeTrialsRemaining = Math.max(0, 2 - uploadCount);
+        
+        // Calculate actual daily tests instead of lifetime uploads
+        const todayStr = new Date().toDateString();
+        let testsUsedToday = userData.testsUsedToday || 0;
+        if (userData.lastTestDate !== todayStr) {
+            testsUsedToday = 0;
+        }
+        const freeTrialsRemaining = Math.max(0, 2 - testsUsedToday);
 
         // Check if Pro status has expired
         if ((currentStatus === 'Pro' || userData.isPro) && userData.expiryDate) {
@@ -770,8 +808,8 @@ app.post('/api/get-user-credits', async (req, res) => {
 
         res.json({
             status: currentStatus,
-            uploadCount: uploadCount,
-            canUpload: currentStatus === 'Pro' || uploadCount < 2,
+            uploadCount: testsUsedToday,
+            canUpload: currentStatus === 'Pro' || testsUsedToday < 2,
             freeTrialsRemaining: freeTrialsRemaining,
             daysRemaining: daysRemaining,
             expiryDate: userData.expiryDate ? (userData.expiryDate.toDate ? userData.expiryDate.toDate() : new Date(userData.expiryDate)) : null
@@ -787,21 +825,29 @@ app.post('/api/get-user-credits', async (req, res) => {
 // Check Upload Limit (before allowing upload)
 app.post('/api/check-upload-limit', async (req, res) => {
     try {
-        const { uid } = req.body;
+        const uid = req.body.uid || req.headers['x-user-id'];
 
         if (!uid) {
             return res.status(400).json({ error: 'Missing uid' });
         }
 
-        const userDoc = await db.collection('users').doc(uid).get();
+        let userDoc = await db.collection('users').doc(uid).get();
         
         if (!userDoc.exists) {
-            return res.json({ canUpload: true, isFirstUpload: true });
+            return res.json({ canUpload: true, isFirstUpload: true, uploadCount: 0 });
         }
 
         let userData = userDoc.data();
-        const uploadCount = userData.uploadCount || 0;
         let currentStatus = userData.status || 'free';
+        
+        // Read user's specific daily test tracker (resetting it locally if needed)
+        const todayStr = new Date().toDateString();
+        let testsUsedToday = userData.testsUsedToday || 0;
+        if (userData.lastTestDate !== todayStr) {
+            testsUsedToday = 0;
+            // Optionally sync reset to database immediately
+            await db.collection('users').doc(uid).update({ testsUsedToday: 0, lastTestDate: todayStr }).catch(e => console.error(e));
+        }
 
         // Check if Pro status has expired
         if (currentStatus === 'Pro' && userData.expiryDate) {
@@ -812,7 +858,8 @@ app.post('/api/check-upload-limit', async (req, res) => {
                 // Pro has expired, revert to free
                 currentStatus = 'free';
                 await db.collection('users').doc(uid).update({
-                    status: 'free'
+                    status: 'free',
+                    isPro: false
                 });
             }
         }
@@ -826,11 +873,11 @@ app.post('/api/check-upload-limit', async (req, res) => {
             });
         }
 
-        // Check free user limit
-        if (uploadCount >= 2) {
+        // Enforce the 2 daily tests rule specifically via testsUsedToday
+        if (testsUsedToday >= 2) {
             return res.json({ 
                 canUpload: false, 
-                uploadCount: uploadCount,
+                uploadCount: testsUsedToday,
                 reason: 'Free limit reached',
                 status: 'free'
             });
@@ -838,8 +885,8 @@ app.post('/api/check-upload-limit', async (req, res) => {
 
         res.json({ 
             canUpload: true, 
-            uploadCount: uploadCount,
-            uploadsRemaining: 2 - uploadCount,
+            uploadCount: testsUsedToday,
+            uploadsRemaining: 2 - testsUsedToday,
             status: 'free'
         });
 
@@ -852,32 +899,9 @@ app.post('/api/check-upload-limit', async (req, res) => {
 // Increment Upload Count After Analysis
 app.post('/api/increment-usage', async (req, res) => {
     try {
-        const { uid } = req.body;
-
-        if (!uid) {
-            return res.status(400).json({ error: 'Missing uid' });
-        }
-
-        const userDoc = await db.collection('users').doc(uid).get();
-        
-        if (!userDoc.exists) {
-            // Create user with first upload
-            await db.collection('users').doc(uid).set({
-                uploadCount: 1,
-                lastUploadDate: new Date(),
-                isPremium: false,
-                createdAt: new Date()
-            });
-        } else {
-            const userData = userDoc.data();
-            const currentCount = userData.uploadCount || 0;
-            
-            await db.collection('users').doc(uid).update({
-                uploadCount: currentCount + 1,
-                lastUploadDate: new Date()
-            });
-        }
-
+        // Note: Usage is now securely incremented SERVER-SIDE directly inside 
+        // /api/analyze-thumbnail and /api/analyze-combined.
+        // This endpoint is neutralized to prevent double-counting of free trials.
         res.json({ success: true });
 
     } catch (err) {

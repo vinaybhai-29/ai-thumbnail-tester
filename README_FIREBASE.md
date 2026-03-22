@@ -30,7 +30,7 @@ A modern, AI-powered YouTube thumbnail analyzer with phone authentication and le
 2. **Configure Environment**
    The `.env` file already contains your Firebase credentials:
    ```
-   FIREBASE_API_KEY=AIzaSyAhgcivuUJOg824qoklIhOQtyHu4OMM5KM
+   FIREBASE_API_KEY=your_firebase_api_key_here
    FIREBASE_AUTH_DOMAIN=ai-thumbnail-tester-34d50.firebaseapp.com
    FIREBASE_PROJECT_ID=ai-thumbnail-tester-34d50
    FIREBASE_STORAGE_BUCKET=ai-thumbnail-tester-34d50.firebasestorage.app

@@ -110,7 +110,7 @@ app.get('/api/get-payment-config', (req, res) => {
 });
 
 // Backend API endpoint for thumbnail analysis
-app.post('/api/analyze-thumbnail', async (req, res) => {
+app.post('/api/analyze', async (req, res) => {
     try {
         const { base64, mimeType, base64_b, mimeType_b } = req.body;
         const uid = req.body.uid || req.headers['x-user-id'];
@@ -119,40 +119,38 @@ app.post('/api/analyze-thumbnail', async (req, res) => {
             return res.status(400).json({ error: 'Missing base64 or mimeType for Thumbnail A' });
         }
 
-        // If uid is provided, validate user exists and check limits
         if (uid) {
-            let userDoc = await db.collection('users').doc(uid).get();
+            const userRef = db.collection('users').doc(uid);
+            let userDoc = await userRef.get();
             
             if (!userDoc.exists) {
                 console.warn(`⚠️ User not found: ${uid}. Auto-creating document.`);
-                await db.collection('users').doc(uid).set({
+                await userRef.set({
                     createdAt: new Date(),
-                    testsUsedToday: 0,
-                    totalTestsUsed: 0,
-                    lastTestDate: new Date().toDateString(),
+                    trialsUsed: 0,
+                    lastTrialDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD
                     status: 'free'
                 });
-                userDoc = await db.collection('users').doc(uid).get();
+                userDoc = await userRef.get();
             }
             
-            const userData = userDoc.data();
-            // Check if user is Pro member - allow unlimited access
-            if (userData.isPro || userData.status === 'Pro') {
-                const expiry = userData.expiryDate ? (userData.expiryDate.toDate ? userData.expiryDate.toDate() : new Date(userData.expiryDate)) : null;
-                if (expiry && new Date() <= expiry) {
-                    console.log(`✅ Pro member ${uid} - unlimited thumbnail analysis`);
-                    // Pro members get unlimited - continue without upload checks
-                } else {
-                    // Pro expired, reset status
-                    console.log(`⏰ Pro expired for user ${uid}`);
-                    await db.collection('users').doc(uid).update({ isPro: false, status: 'free', uploadCount: 0 });
+            let userData = userDoc.data();
+            
+            const isPro = userData.status === 'Pro' && userData.expiryDate && userData.expiryDate.toDate() > new Date();
+
+            if (!isPro) {
+                const today = new Date().toISOString().split('T')[0];
+                let trialsUsed = userData.trialsUsed || 0;
+                let lastTrialDate = userData.lastTrialDate || today;
+
+                if (lastTrialDate !== today) {
+                    trialsUsed = 0;
+                    await userRef.update({ lastTrialDate: today, trialsUsed: 0 });
                 }
-            }
 
-            const testsRemaining = Math.max(0, (userData.credits || 2) - (userData.testsUsedToday || 0));
-
-            if (testsRemaining <= 0 && userData.credits === 0) {
-                return res.status(403).json({ error: 'noCredits', message: 'No credits remaining. Please purchase credits.' });
+                if (trialsUsed >= 2) {
+                    return res.status(403).json({ error: '2/2 Free trials used for today' });
+                }
             }
         }
 
@@ -162,30 +160,16 @@ app.post('/api/analyze-thumbnail', async (req, res) => {
         }
         
         let content = [];
+        let prompt;
         if (base64_b && mimeType_b) {
-            // A/B test prompt
-            content.push({
-                type: 'text',
-                text: "Analyze these two thumbnails and determine which one will have a higher CTR (Click-Through Rate). Declare a clear winner and explain why, focusing on psychology, design, and engagement. Return ONLY a JSON object with 'winner' ('A' or 'B') and 'explanation' (a detailed explanation)."
-            });
-            content.push({
-                type: 'image_url',
-                image_url: { url: `data:${mimeType};base64,${base64}` }
-            });
-            content.push({
-                type: 'image_url',
-                image_url: { url: `data:${mimeType_b};base64,${base64_b}` }
-            });
+            prompt = "Analyze these two thumbnails and determine which one will have a higher CTR (Click-Through Rate). Declare a clear winner and explain why, focusing on psychology, design, and engagement. Return ONLY a JSON object with 'winner' ('A' or 'B') and 'explanation' (a detailed explanation).";
+            content.push({ type: 'text', text: prompt });
+            content.push({ type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64}` } });
+            content.push({ type: 'image_url', image_url: { url: `data:${mimeType_b};base64,${base64_b}` } });
         } else {
-            // Single thumbnail analysis prompt
-            content.push({
-                type: 'text',
-                text: "Analyze this YouTube thumbnail for CTR potential. Return ONLY a JSON object with 'score' (0-100 number) and 'tips' (array of exactly 3 improvement tips in English language). No extra text, no markdown."
-            });
-            content.push({
-                type: 'image_url',
-                image_url: { url: `data:${mimeType};base64,${base64}` }
-            });
+            prompt = "Analyze this YouTube thumbnail for CTR potential, design, and clickability. Return ONLY a JSON object with 'score' (0-100 number) and 'tips' (array of exactly 3 improvement tips in English language). No extra text, no markdown.";
+            content.push({ type: 'text', text: prompt });
+            content.push({ type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64}` } });
         }
 
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -195,7 +179,7 @@ app.post('/api/analyze-thumbnail', async (req, res) => {
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: 'google/gemini-2.0-flash-lite-001',
+                model: 'google/gemini-pro-vision',
                 messages: [{
                     role: 'user',
                     content: content
@@ -212,28 +196,16 @@ app.post('/api/analyze-thumbnail', async (req, res) => {
         const aiText = data.choices[0].message.content.replace(/```json|```/g, '').trim();
         const final = JSON.parse(aiText);
 
-        // Update test usage if user is logged in
         if (uid) {
-            try {
-                const userDoc = await db.collection('users').doc(uid).get();
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
-                    const todayStr = new Date().toDateString();
-                    let testsUsedToday = userData.testsUsedToday || 0;
-                    
-                    // Reset daily count if it's a new day
-                    if (userData.lastTestDate !== todayStr) {
-                        testsUsedToday = 0;
-                    }
-                    
-                    await db.collection('users').doc(uid).update({
-                        testsUsedToday: testsUsedToday + 1,
-                        totalTestsUsed: (userData.totalTestsUsed || 0) + 1,
-                        lastTestDate: todayStr
-                    });
-                }
-            } catch (updateErr) {
-                console.error('Error updating test usage:', updateErr);
+            const userRef = db.collection('users').doc(uid);
+            const userDoc = await userRef.get();
+            const userData = userDoc.data();
+            const isPro = userData.status === 'Pro' && userData.expiryDate && userData.expiryDate.toDate() > new Date();
+
+            if (!isPro) {
+                await userRef.update({
+                    trialsUsed: admin.firestore.FieldValue.increment(1)
+                });
             }
         }
 

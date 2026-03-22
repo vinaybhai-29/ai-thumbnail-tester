@@ -365,14 +365,25 @@
             font-size: 0.85rem;
         }
 
+        .upload-container {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .drop-zone-wrapper {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+        }
+
         #previewA, #previewB {
-            width: 100%;
-            height: 100%;
             max-width: 100%;
-            max-height: 100%;
+            max-height: 250px;
+            object-fit: contain;
+            width: 100%;
             border-radius: 0.75rem;
             margin-top: 1rem;
-            object-fit: contain;
             display: none;
         }
 
@@ -803,30 +814,31 @@
         <p style="color: #94a3b8;">Optimize Your YouTube Content</p>
 
         <!-- A/B Thumbnail Testing Section -->
-        <div class="title-section">
-            <div class="section-title">🖼️ Thumbnail A</div>
-            <div class="drag-drop-zone" id="dragDropZoneA">
-                <div class="drag-drop-icon">🅰️</div>
-                <div class="drag-drop-text">Drag & Drop Thumbnail A</div>
-                <div class="drag-drop-subtext">or click to browse</div>
-                <input type="file" id="fileInputA" hidden accept="image/*">
-                <img id="previewA">
+        <div class="upload-container">
+            <div class="drop-zone-wrapper">
+                <div class="section-title">🖼️ Thumbnail A (Required)</div>
+                <div class="drag-drop-zone" id="dragDropZoneA">
+                    <div class="drag-drop-icon">🅰️</div>
+                    <div class="drag-drop-text">Drag & Drop Thumbnail A</div>
+                    <div class="drag-drop-subtext">or click to browse</div>
+                    <input type="file" id="fileInputA" hidden accept="image/*">
+                    <img id="previewA">
+                </div>
             </div>
-        </div>
-
-        <div class="title-section">
-            <div class="section-title">🖼️ Thumbnail B</div>
-            <div class="drag-drop-zone" id="dragDropZoneB">
-                <div class="drag-drop-icon">🅱️</div>
-                <div class="drag-drop-text">Drag & Drop Thumbnail B</div>
-                <div class="drag-drop-subtext">or click to browse</div>
-                <input type="file" id="fileInputB" hidden accept="image/*">
-                <img id="previewB">
+            <div class="drop-zone-wrapper">
+                <div class="section-title">🖼️ Thumbnail B (Optional)</div>
+                <div class="drag-drop-zone" id="dragDropZoneB">
+                    <div class="drag-drop-icon">🅱️</div>
+                    <div class="drag-drop-text">Drag & Drop Thumbnail B</div>
+                    <div class="drag-drop-subtext">or click to browse</div>
+                    <input type="file" id="fileInputB" hidden accept="image/*">
+                    <img id="previewB">
+                </div>
             </div>
         </div>
 
         <!-- Compare Button -->
-        <button id="btn" onclick="compareThumbnails()">🚀 Compare Thumbnails</button>
+        <button id="btn" onclick="analyze()">🚀 Analyze</button>
 
         <!-- Loader -->
         <div class="loader" id="loader">
@@ -1482,14 +1494,14 @@
             }, duration);
         }
 
-        // Compare Thumbnails function
-        async function compareThumbnails() {
-            if (!fileInputA.files[0] || !fileInputB.files[0]) {
-                return alert("📸 Please select both Thumbnail A and Thumbnail B!");
+        // Analyze function
+        async function analyze() {
+            if (!fileInputA.files[0]) {
+                return alert("📸 Please select at least Thumbnail A!");
             }
 
             if (!currentUser) {
-                alert('🔐 Please login first to compare thumbnails!');
+                alert('🔐 Please login first to analyze!');
                 document.getElementById('authModal').classList.add('active');
                 return;
             }
@@ -1500,7 +1512,7 @@
             }
 
             btn.disabled = true;
-            btn.innerText = "🚀 Comparing...";
+            btn.innerText = "🚀 Analyzing...";
             loader.classList.add('active');
             document.getElementById('errorBox').style.display = 'none';
             document.getElementById('combinedResult').classList.remove('show');
@@ -1508,43 +1520,53 @@
             startLoaderAnimation();
 
             const readerA = new FileReader();
-            const readerB = new FileReader();
-
             readerA.readAsDataURL(fileInputA.files[0]);
+
             readerA.onload = () => {
-                readerB.readAsDataURL(fileInputB.files[0]);
-                readerB.onload = async () => {
-                    try {
-                        const base64A = readerA.result.split(',')[1];
-                        const mimeTypeA = fileInputA.files[0].type;
+                const base64A = readerA.result.split(',')[1];
+                const mimeTypeA = fileInputA.files[0].type;
+
+                if (fileInputB.files[0]) {
+                    const readerB = new FileReader();
+                    readerB.readAsDataURL(fileInputB.files[0]);
+                    readerB.onload = async () => {
                         const base64B = readerB.result.split(',')[1];
                         const mimeTypeB = fileInputB.files[0].type;
-
-                        const analysis = await analyzeWithToast(base64A, mimeTypeA, base64B, mimeTypeB);
-
-                        displayCombinedResult(analysis);
-
-                        uploadCount++;
-
-                    } catch (err) {
-                        const errorMsg = err.message;
-                        if (errorMsg.includes('Please Login First')) {
-                            alert('🔐 ' + errorMsg + '\n\nClick OK to login');
-                            document.getElementById('signInBtn').click();
-                        } else if (errorMsg.includes('No credits')) {
-                            alert('💳 ' + errorMsg);
-                        } else {
-                            document.getElementById('errorBox').innerText = "❌ Error: " + errorMsg;
-                            document.getElementById('errorBox').style.display = 'block';
-                        }
-                    } finally {
-                        btn.disabled = false;
-                        btn.innerText = "🚀 Compare Thumbnails";
-                        loader.classList.remove('active');
-                    }
-                };
+                        await performAnalysis(base64A, mimeTypeA, base64B, mimeTypeB);
+                    };
+                } else {
+                    performAnalysis(base64A, mimeTypeA);
+                }
             };
         }
+
+        async function performAnalysis(base64A, mimeTypeA, base64B = null, mimeTypeB = null) {
+            try {
+                const analysis = await analyzeWithToast(base64A, mimeTypeA, base64B, mimeTypeB);
+
+                displayCombinedResult(analysis);
+
+                uploadCount++;
+
+            } catch (err) {
+                const errorMsg = err.message;
+                if (errorMsg.includes('Please Login First')) {
+                    alert('🔐 ' + errorMsg + '\n\nClick OK to login');
+                    document.getElementById('signInBtn').click();
+                } else if (errorMsg.includes('No credits') || errorMsg.includes('Free trials')) {
+                    // document.getElementById('paywallModal').classList.add('active');
+                    alert('💳 ' + errorMsg);
+                } else {
+                    document.getElementById('errorBox').innerText = "❌ Error: " + errorMsg;
+                    document.getElementById('errorMsg').style.display = 'block';
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "🚀 Analyze";
+                loader.classList.remove('active');
+            }
+        }
+
 
         // Analyze with Toast for Long Operations
         async function analyzeWithToast(base64A, mimeTypeA, base64B, mimeTypeB) {
@@ -1559,7 +1581,7 @@
             }, 8000); // Show toast after 8 seconds
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/analyze-thumbnail`, {
+                const response = await fetch(`${API_BASE_URL}/api/analyze`, {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',

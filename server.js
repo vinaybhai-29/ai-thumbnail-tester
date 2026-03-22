@@ -270,6 +270,91 @@ app.post('/api/analyze', async (req, res) => {
     }
 });
 
+// 🚀 5. BULLETPROOF: Generate Titles
+app.post('/api/generate-titles', async (req, res) => {
+    try {
+        const { topic, language } = req.body;
+        const uid = req.body.uid || req.headers['x-user-id'];
+
+        if (!topic) return res.status(400).json({ error: 'Missing topic' });
+        if (!uid) return res.status(401).json({ error: 'userNotFound', message: 'Please Login First' });
+
+        const today = getTodayString();
+        const userRef = db.collection('users').doc(uid);
+        const userSnap = await userRef.get();
+        
+        let isPro = false;
+        let trialsUsed = 0;
+        
+        if (userSnap.exists) {
+            const uData = userSnap.data() || {};
+            isPro = uData.isPro || uData.status === 'Pro' || false;
+            
+            if (isPro && uData.expiryDate) {
+                const expiry = uData.expiryDate.toDate ? uData.expiryDate.toDate() : new Date(uData.expiryDate);
+                if (new Date() > expiry) isPro = false;
+            }
+            
+            const lastTrialDate = uData.lastTrialDate || uData.lastTestDate || null;
+            if (lastTrialDate === today) {
+                if (uData.trialsUsed !== undefined) trialsUsed = Number(uData.trialsUsed);
+                else if (uData.testsUsedToday !== undefined) trialsUsed = Number(uData.testsUsedToday);
+                if (isNaN(trialsUsed)) trialsUsed = 0;
+            }
+        }
+
+        if (!isPro && trialsUsed >= 2) {
+            return res.status(403).json({ error: 'noCredits', message: 'Free limit reached. Upgrade to Pro.' });
+        }
+
+        const apiKey = process.env.OPENROUTER_API_KEY;
+        if (!apiKey) return res.status(500).json({ error: 'API key missing' });
+
+        const prompt = `You are a viral YouTube expert. Generate 5 catchy, high-CTR YouTube titles for the topic: "${topic}". The target language is ${language || 'English'}. Return ONLY a JSON object with a single key 'titles' containing an array of 5 strings. No extra text, no markdown.`;
+
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+            body: JSON.stringify({ 
+                model: 'google/gemini-2.0-flash-lite-001', 
+                messages: [{ role: 'user', content: [{ type: 'text', text: prompt }] }] 
+            })
+        });
+
+        const data = await response.json();
+        if (data.error) return res.status(400).json({ error: data.error.message });
+
+        const aiText = data.choices[0].message.content.replace(/```json|```/g, '').trim();
+        const finalResult = JSON.parse(aiText);
+
+        if (!isPro) {
+            try {
+                await db.runTransaction(async (transaction) => {
+                    const userDoc = await transaction.get(userRef);
+                    if (!userDoc.exists) {
+                        transaction.set(userRef, { isPro: false, status: 'free', createdAt: new Date(), trialsUsed: 1, lastTrialDate: today }, { merge: true });
+                    } else {
+                        const uData = userDoc.data() || {};
+                        const lastDate = uData.lastTrialDate || uData.lastTestDate || null;
+                        let currTrials = 0;
+                        if (lastDate === today) {
+                            if (uData.trialsUsed !== undefined) currTrials = Number(uData.trialsUsed);
+                            else if (uData.testsUsedToday !== undefined) currTrials = Number(uData.testsUsedToday);
+                            if (isNaN(currTrials)) currTrials = 0;
+                        }
+                        
+                        transaction.set(userRef, { trialsUsed: currTrials + 1, lastTrialDate: today }, { merge: true });
+                    }
+                });
+            } catch (txError) { console.error('Transaction Error:', txError); }
+        }
+
+        res.json(finalResult);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Create Razorpay Order
 app.post('/api/create-order', async (req, res) => {
     try {

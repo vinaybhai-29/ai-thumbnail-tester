@@ -1140,6 +1140,8 @@
                         updateAuthUI();
                         if (user) {
                             console.log('User logged in:', user.uid);
+                            document.getElementById('authModal').classList.remove('active');
+                            document.getElementById('warningModal').classList.remove('active');
                             await loadUserCredits();
                         }
                     } catch (err) {

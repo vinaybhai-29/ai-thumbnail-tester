@@ -781,17 +781,18 @@ app.post('/api/analyze', async (req, res) => {
         let trialsUsed = 0;
         
         if (userSnap.exists) {
-            const uData = userSnap.data();
-            isPro = uData.isPro || uData.status === 'Pro';
+            const uData = userSnap.data() || {};
+            isPro = uData.isPro || uData.status === 'Pro' || false;
             if (isPro && uData.expiryDate) {
                 const expiry = uData.expiryDate.toDate ? uData.expiryDate.toDate() : new Date(uData.expiryDate);
                 if (new Date() > expiry) isPro = false;
             }
             
-            if (uData.lastTrialDate !== today) {
+            trialsUsed = uData.trialsUsed || 0; 
+            const lastTrialDate = uData.lastTrialDate || null;
+            
+            if (lastTrialDate !== today) {
                 trialsUsed = 0;
-            } else {
-                trialsUsed = uData.trialsUsed || 0;
             }
         }
 
@@ -857,7 +858,7 @@ app.post('/api/analyze', async (req, res) => {
                             lastTrialDate: today
                         }, { merge: true });
                     } else {
-                        const uData = userDoc.data();
+                        const uData = userDoc.data() || {};
                         let currentTrials = (uData.lastTrialDate === today) ? (uData.trialsUsed || 0) : 0;
                         transaction.set(userRef, {
                             isPro: uData.isPro === undefined ? false : uData.isPro,

@@ -91,6 +91,9 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static('.'));
 
+// Helpers for unified trial tracking
+const getTodayString = () => new Date().toISOString().split('T')[0];
+
 // Endpoint to provide Firebase config to client
 app.get('/api/get-firebase-config', (req, res) => {
     res.json(firebaseConfig);
@@ -113,40 +116,48 @@ app.post('/api/analyze-thumbnail', async (req, res) => {
             return res.status(400).json({ error: 'Missing base64 or mimeType' });
         }
 
+        const today = getTodayString();
+
         if (uid) {
             let userDoc = await db.collection('users').doc(uid).get();
             
             if (!userDoc.exists) {
                 await db.collection('users').doc(uid).set({
                     createdAt: new Date(),
-                    testsUsedToday: 0,
-                    totalTestsUsed: 0,
-                    lastTestDate: new Date().toDateString(),
+                    trialsUsed: 0,
+                    totalTrialsUsed: 0,
+                    lastTrialDate: today,
                     status: 'free'
                 });
                 userDoc = await db.collection('users').doc(uid).get();
             }
             
             const userData = userDoc.data();
-            if (userData.isPro || userData.status === 'Pro') {
+            let isPro = userData.isPro || userData.status === 'Pro';
+
+            if (isPro) {
                 const expiry = userData.expiryDate ? (userData.expiryDate.toDate ? userData.expiryDate.toDate() : new Date(userData.expiryDate)) : null;
                 if (expiry && new Date() <= expiry) {
-                    console.log(`✅ Pro member ${uid} - unlimited thumbnail analysis`);
+                    // Still Pro
                 } else {
+                    isPro = false;
                     await db.collection('users').doc(uid).update({ isPro: false, status: 'free', uploadCount: 0 });
                 }
             }
 
-            const testsRemaining = Math.max(0, (userData.credits || 2) - (userData.testsUsedToday || 0));
-            if (testsRemaining <= 0 && userData.credits === 0) {
-                return res.status(403).json({ error: 'noCredits', message: 'No credits remaining. Please purchase credits.' });
+            const lastTrialDate = userData.lastTrialDate || userData.lastTestDate || null;
+            let currentTrials = userData.trialsUsed !== undefined ? userData.trialsUsed : (userData.testsUsedToday || 0);
+            if (lastTrialDate !== today) {
+                currentTrials = 0;
+            }
+
+            if (!isPro && currentTrials >= 2) {
+                return res.status(403).json({ error: 'noCredits', message: 'Free trials exhausted for today.' });
             }
         }
 
         const apiKey = process.env.OPENROUTER_API_KEY;
-        if (!apiKey) {
-            return res.status(500).json({ error: 'API key not configured' });
-        }
+        if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
@@ -159,23 +170,15 @@ app.post('/api/analyze-thumbnail', async (req, res) => {
                 messages: [{
                     role: 'user',
                     content: [
-                        {
-                            type: 'text',
-                            text: "Analyze this YouTube thumbnail for CTR potential. Return ONLY a JSON object with 'score' (0-100 number) and 'tips' (array of exactly 3 improvement tips in English language). No extra text, no markdown."
-                        },
-                        {
-                            type: 'image_url',
-                            image_url: { url: `data:${mimeType};base64,${base64}` }
-                        }
+                        { type: 'text', text: "Analyze this YouTube thumbnail for CTR potential. Return ONLY a JSON object with 'score' (0-100 number) and 'tips' (array of exactly 3 improvement tips in English language). No extra text, no markdown." },
+                        { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64}` } }
                     ]
                 }]
             })
         });
 
         const data = await response.json();
-        if (data.error) {
-            return res.status(400).json({ error: data.error.message });
-        }
+        if (data.error) return res.status(400).json({ error: data.error.message });
 
         const aiText = data.choices[0].message.content.replace(/```json|```/g, '').trim();
         const final = JSON.parse(aiText);
@@ -185,15 +188,15 @@ app.post('/api/analyze-thumbnail', async (req, res) => {
                 const userDoc = await db.collection('users').doc(uid).get();
                 if (userDoc.exists) {
                     const userData = userDoc.data();
-                    const todayStr = new Date().toDateString();
-                    let testsUsedToday = userData.testsUsedToday || 0;
-                    if (userData.lastTestDate !== todayStr) {
-                        testsUsedToday = 0;
-                    }
+                    const lastTrialDate = userData.lastTrialDate || userData.lastTestDate || null;
+                    let currentTrials = userData.trialsUsed !== undefined ? userData.trialsUsed : (userData.testsUsedToday || 0);
+                    
+                    if (lastTrialDate !== today) currentTrials = 0;
+                    
                     await db.collection('users').doc(uid).update({
-                        testsUsedToday: testsUsedToday + 1,
-                        totalTestsUsed: (userData.totalTestsUsed || 0) + 1,
-                        lastTestDate: todayStr
+                        trialsUsed: currentTrials + 1,
+                        totalTrialsUsed: (userData.totalTrialsUsed || userData.totalTestsUsed || 0) + 1,
+                        lastTrialDate: today
                     });
                 }
             } catch (updateErr) {
@@ -217,34 +220,28 @@ app.post('/api/generate-titles', async (req, res) => {
         if (!title || title.trim().length === 0) {
             return res.status(400).json({ error: 'Missing title input' });
         }
-
         if (!uid) {
             return res.status(401).json({ error: 'unauthorized', message: 'Missing user ID. Please login first.' });
         }
 
+        const today = getTodayString();
         let userDoc = await db.collection('users').doc(uid).get();
         if (!userDoc.exists) {
             await db.collection('users').doc(uid).set({
                 createdAt: new Date(),
-                testsUsedToday: 0,
-                totalTestsUsed: 0,
-                lastTestDate: new Date().toDateString(),
+                trialsUsed: 0,
+                totalTrialsUsed: 0,
+                lastTrialDate: today,
                 status: 'free'
             });
-            userDoc = await db.collection('users').doc(uid).get();
         }
 
         const apiKey = process.env.OPENROUTER_API_KEY;
-        if (!apiKey) {
-            return res.status(500).json({ error: 'API key not configured' });
-        }
+        if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
             body: JSON.stringify({
                 model: 'google/gemini-2.0-flash-lite-001',
                 messages: [{
@@ -255,22 +252,15 @@ app.post('/api/generate-titles', async (req, res) => {
         });
 
         const data = await response.json();
-        if (data.error) {
-            return res.status(400).json({ error: data.error.message });
-        }
+        if (data.error) return res.status(400).json({ error: data.error.message });
 
         const aiText = data.choices[0].message.content.replace(/```json|```/g, '').trim();
-        
         let titles;
-        try {
-            titles = JSON.parse(aiText);
-        } catch (parseErr) {
-            return res.status(500).json({ error: 'Failed to generate valid titles. Please try again.' });
-        }
+        try { titles = JSON.parse(aiText); } 
+        catch (parseErr) { return res.status(500).json({ error: 'Failed to parse titles.' }); }
         
         res.json(titles);
     } catch (err) {
-        console.error('Error generating titles:', err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -280,79 +270,50 @@ app.post('/api/analyze-combined', async (req, res) => {
     try {
         const { base64, mimeType, title } = req.body;
         const uid = req.body.uid || req.headers['x-user-id'];
+        const today = getTodayString();
 
-        if (!base64 || !mimeType || !title) {
-            return res.status(400).json({ error: 'Missing base64, mimeType, or title' });
-        }
+        if (!base64 || !mimeType || !title) return res.status(400).json({ error: 'Missing base64, mimeType, or title' });
 
         if (uid) {
             let userDoc = await db.collection('users').doc(uid).get();
-            
             if (!userDoc.exists) {
                 await db.collection('users').doc(uid).set({
-                    createdAt: new Date(),
-                    testsUsedToday: 0,
-                    totalTestsUsed: 0,
-                    lastTestDate: new Date().toDateString(),
-                    status: 'free'
+                    createdAt: new Date(), trialsUsed: 0, totalTrialsUsed: 0, lastTrialDate: today, status: 'free'
                 });
                 userDoc = await db.collection('users').doc(uid).get();
             }
             
             const userData = userDoc.data();
-            if (userData.isPro || userData.status === 'Pro') {
+            let isPro = userData.isPro || userData.status === 'Pro';
+            
+            if (isPro) {
                 const expiry = userData.expiryDate ? (userData.expiryDate.toDate ? userData.expiryDate.toDate() : new Date(userData.expiryDate)) : null;
-                if (expiry && new Date() <= expiry) {
-                    console.log(`✅ Pro member ${uid} - combined analysis unlimited`);
-                } else {
+                if (expiry && new Date() > expiry) {
                     await db.collection('users').doc(uid).update({ isPro: false, status: 'free' });
                 }
             }
         }
 
         const apiKey = process.env.OPENROUTER_API_KEY;
-        if (!apiKey) {
-            return res.status(500).json({ error: 'API key not configured' });
-        }
+        if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
             body: JSON.stringify({
                 model: 'google/gemini-2.0-flash-lite-001',
                 messages: [{
                     role: 'user',
                     content: [
-                        {
-                            type: 'text',
-                            text: `You are a YouTube expert. Analyze this thumbnail and title TOGETHER for clickability potential.
-Title: "${title}"
-
-Return ONLY a JSON object with:
-- 'thumbnailScore' (0-100): CTR score for the thumbnail
-- 'titleScore' (0-100): Clickability score for the title  
-- 'combinedScore' (0-100): Overall combined clickability score
-- 'tips' (array of 5 actionable suggestions to improve clicks)
-- 'analysis' (2-3 sentences about the thumbnail-title synergy)
-
-No extra text, no markdown.`
-                        },
-                        {
-                            type: 'image_url',
-                            image_url: { url: `data:${mimeType};base64,${base64}` }
-                        }
+                        { type: 'text', text: `You are a YouTube expert. Analyze this thumbnail and title TOGETHER for clickability potential.\nTitle: "${title}"\nReturn ONLY a JSON object with:\n- 'thumbnailScore' (0-100)\n- 'titleScore' (0-100)\n- 'combinedScore' (0-100)\n- 'tips' (array of 5 actionable suggestions)\n- 'analysis' (2-3 sentences)\nNo extra text, no markdown.` },
+                        { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64}` } }
                     ]
                 }]
             })
         });
 
         const data = await response.json();
-        if (data.error) {
-            return res.status(400).json({ error: data.error.message });
-        }
+        if (data.error) return res.status(400).json({ error: data.error.message });
 
         const aiText = data.choices[0].message.content.replace(/```json|```/g, '').trim();
         const analysis = JSON.parse(aiText);
@@ -362,122 +323,91 @@ No extra text, no markdown.`
                 const userDoc = await db.collection('users').doc(uid).get();
                 if (userDoc.exists) {
                     const userData = userDoc.data();
-                    const todayStr = new Date().toDateString();
-                    let testsUsedToday = userData.testsUsedToday || 0;
-                    if (userData.lastTestDate !== todayStr) {
-                        testsUsedToday = 0;
-                    }
+                    const lastTrialDate = userData.lastTrialDate || userData.lastTestDate || null;
+                    let currentTrials = userData.trialsUsed !== undefined ? userData.trialsUsed : (userData.testsUsedToday || 0);
+                    if (lastTrialDate !== today) currentTrials = 0;
+                    
                     await db.collection('users').doc(uid).update({
-                        testsUsedToday: testsUsedToday + 1,
-                        totalTestsUsed: (userData.totalTestsUsed || 0) + 1,
-                        lastTestDate: todayStr
+                        trialsUsed: currentTrials + 1,
+                        totalTrialsUsed: (userData.totalTrialsUsed || userData.totalTestsUsed || 0) + 1,
+                        lastTrialDate: today
                     });
                 }
-            } catch (updateErr) {
-                console.error('Error updating test usage:', updateErr);
-            }
+            } catch (updateErr) { console.error('Error updating test usage:', updateErr); }
         }
 
         res.json(analysis);
-    } catch (err) {
-        console.error('Error in combined analysis:', err);
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // Save user to Firestore after authentication
 app.post('/api/verify-phone-auth', async (req, res) => {
     try {
         const { uid, email, displayName } = req.body;
-
-        if (!uid || !email) {
-            return res.status(400).json({ error: 'Missing uid or email' });
-        }
+        if (!uid || !email) return res.status(400).json({ error: 'Missing uid or email' });
 
         await db.collection('users').doc(uid).set({
             email: email,
             displayName: displayName || null,
             createdAt: new Date(),
-            testsUsedToday: 0,
-            totalTestsUsed: 0,
-            lastTestDate: new Date().toDateString(),
+            trialsUsed: 0,
+            lastTrialDate: getTodayString(),
             verified: true
         }, { merge: true });
 
         res.json({ success: true, message: 'User verified and saved' });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // Get user stats
 app.post('/api/get-user-stats', async (req, res) => {
     try {
         const { uid } = req.body;
-
-        if (!uid) {
-            return res.status(400).json({ error: 'Missing uid' });
-        }
+        if (!uid) return res.status(400).json({ error: 'Missing uid' });
 
         const userDoc = await db.collection('users').doc(uid).get();
-        
-        if (!userDoc.exists) {
-            return res.json({ testsRemaining: 2, totalUsed: 0 });
-        }
+        if (!userDoc.exists) return res.json({ testsRemaining: 2, totalUsed: 0 });
 
         const userData = userDoc.data();
-        const todayStr = new Date().toDateString();
-        let testsUsedToday = userData.testsUsedToday || 0;
-        if (userData.lastTestDate !== todayStr) {
-            testsUsedToday = 0;
-            await db.collection('users').doc(uid).update({
-                testsUsedToday: 0,
-                lastTestDate: todayStr
-            });
+        const today = getTodayString();
+        const lastTrialDate = userData.lastTrialDate || userData.lastTestDate || null;
+        let trialsUsed = userData.trialsUsed !== undefined ? userData.trialsUsed : (userData.testsUsedToday || 0);
+
+        if (lastTrialDate !== today) {
+            trialsUsed = 0;
         }
 
-        const testsRemaining = Math.max(0, 2 - testsUsedToday);
         res.json({ 
-            testsRemaining: testsRemaining,
-            testsUsedToday: testsUsedToday,
-            totalUsed: userData.totalTestsUsed || 0
+            testsRemaining: Math.max(0, 2 - trialsUsed),
+            testsUsedToday: trialsUsed,
+            totalUsed: userData.totalTrialsUsed || userData.totalTestsUsed || 0
         });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // Update test usage
 app.post('/api/update-test-usage', async (req, res) => {
     try {
         const { uid } = req.body;
-
-        if (!uid) {
-            return res.status(400).json({ error: 'Missing uid' });
-        }
+        if (!uid) return res.status(400).json({ error: 'Missing uid' });
 
         const userDoc = await db.collection('users').doc(uid).get();
         const userData = userDoc.data() || {};
-        const todayStr = new Date().toDateString();
+        const today = getTodayString();
+        
+        const lastTrialDate = userData.lastTrialDate || userData.lastTestDate || null;
+        let trialsUsed = userData.trialsUsed !== undefined ? userData.trialsUsed : (userData.testsUsedToday || 0);
 
-        let testsUsedToday = userData.testsUsedToday || 0;
-        if (userData.lastTestDate !== todayStr) {
-            testsUsedToday = 0;
-        }
+        if (lastTrialDate !== today) trialsUsed = 0;
 
         await db.collection('users').doc(uid).update({
-            testsUsedToday: testsUsedToday + 1,
-            totalTestsUsed: (userData.totalTestsUsed || 0) + 1,
-            lastTestDate: todayStr
+            trialsUsed: trialsUsed + 1,
+            totalTrialsUsed: (userData.totalTrialsUsed || userData.totalTestsUsed || 0) + 1,
+            lastTrialDate: today
         });
 
         res.json({ success: true });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // Diagnostic
@@ -489,68 +419,40 @@ app.get('/api/status', (req, res) => {
         razorpayInitialized: !!razorpay,
         razorpayKeyIdSet: !!keyId,
         razorpayKeySecretSet: !!keySecret,
-        razorpayKeyId_masked: keyId ? keyId.substring(0, 8) + '...' : 'NOT SET',
-        razorpayKeyIdStartsWithRzp: keyId ? keyId.startsWith('rzp_') : false,
-        razorpayKeyIdLength: keyId ? keyId.length : 0,
-        timestamp: new Date().toISOString(),
-        nodeEnv: process.env.NODE_ENV || 'production'
+        timestamp: new Date().toISOString()
     });
 });
 
 // Create Razorpay Order
 app.post('/api/create-order', async (req, res) => {
     try {
-        try {
-            const { uid, amount, creditsToAdd } = req.body;
+        const { uid, amount, creditsToAdd } = req.body;
+        if (!uid || !amount || !creditsToAdd) return res.status(400).json({ error: 'Missing fields' });
 
-            if (!uid || !amount || !creditsToAdd) {
-                return res.status(400).json({ error: 'Missing uid, amount, or creditsToAdd' });
-            }
-
-            if (!razorpay) {
-                const dummyOrderId = `order_dummy_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                const amountInPaise = amount * 100;
-                return res.json({
-                    orderID: dummyOrderId,
-                    currency: 'INR',
-                    amount: amountInPaise,
-                    isDummy: true
-                });
-            }
-
-            const amountInPaise = amount * 100;
-            const order = await razorpay.orders.create({
-                amount: amountInPaise,
+        if (!razorpay) {
+            return res.json({
+                orderID: `order_dummy_${Date.now()}`,
                 currency: 'INR',
-                receipt: `rcpt_${Date.now()}`,
-                notes: {
-                    uid: uid,
-                    creditsToAdd: creditsToAdd
-                }
-            });
-
-            return res.status(200).json({
-                orderID: order.id,
-                currency: order.currency,
-                amount: order.amount,
-                isDummy: false
-            });
-
-        } catch (innerErr) {
-            let errorMessage = innerErr.message || 'Failed to create Razorpay order';
-            if (innerErr.response && innerErr.response.body) {
-                errorMessage = innerErr.response.body.error?.description || errorMessage;
-            }
-            return res.status(500).json({
-                error: errorMessage,
-                isDummy: false
+                amount: amount * 100,
+                isDummy: true
             });
         }
-    } catch (outerErr) {
-        return res.status(500).json({
-            error: 'Server error: ' + (outerErr.message || 'Unknown error'),
+
+        const order = await razorpay.orders.create({
+            amount: amount * 100,
+            currency: 'INR',
+            receipt: `rcpt_${Date.now()}`,
+            notes: { uid: uid, creditsToAdd: creditsToAdd }
+        });
+
+        return res.status(200).json({
+            orderID: order.id,
+            currency: order.currency,
+            amount: order.amount,
             isDummy: false
         });
+    } catch (outerErr) {
+        return res.status(500).json({ error: 'Server error: ' + outerErr.message, isDummy: false });
     }
 });
 
@@ -558,33 +460,16 @@ app.post('/api/create-order', async (req, res) => {
 app.post('/api/verify-payment', async (req, res) => {
     try {
         const { uid, razorpay_payment_id, razorpay_order_id, razorpay_signature, creditsToAdd } = req.body;
-
-        if (!uid || !razorpay_payment_id || !razorpay_order_id || !razorpay_signature || !creditsToAdd) {
-            return res.status(400).json({ error: 'Missing required payment verification fields' });
-        }
-
-        if (!process.env.RAZORPAY_KEY_SECRET) {
-            return res.status(500).json({ error: 'Razorpay key secret not configured' });
+        if (!uid || !razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
+            return res.status(400).json({ error: 'Missing verification fields' });
         }
 
         const body = razorpay_order_id + '|' + razorpay_payment_id;
-        const expectedSignature = crypto
-            .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-            .update(body)
-            .digest('hex');
+        const expectedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET).update(body).digest('hex');
 
-        const isSignatureValid = expectedSignature === razorpay_signature;
-        if (!isSignatureValid) {
-            return res.status(400).json({ error: 'Payment signature verification failed' });
+        if (expectedSignature !== razorpay_signature) {
+            return res.status(400).json({ error: 'Signature verification failed' });
         }
-
-        const userDoc = await db.collection('users').doc(uid).get();
-        if (!userDoc.exists) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        const userData = userDoc.data();
-        const currentCredits = userData.credits || 0;
 
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + 30);
@@ -593,173 +478,107 @@ app.post('/api/verify-payment', async (req, res) => {
             isPro: true,
             status: 'Pro',
             expiryDate: expiryDate,
-            lastPaymentDate: new Date(),
-            totalPurchases: (userData.totalPurchases || 0) + 1,
-            uploadCount: 0
+            lastPaymentDate: new Date()
         });
 
-        await db.collection('users').doc(uid).collection('payments').add({
-            razorpay_payment_id: razorpay_payment_id,
-            razorpay_order_id: razorpay_order_id,
-            creditsAdded: creditsToAdd,
-            timestamp: new Date(),
-            status: 'completed'
-        });
-
-        res.json({ 
-            success: true, 
-            message: 'Payment verified and credits added',
-            newCredits: currentCredits + creditsToAdd
-        });
-    } catch (err) {
-        console.error('Error verifying payment:', err);
-        res.status(500).json({ error: err.message });
-    }
+        res.json({ success: true, message: 'Payment verified and Pro activated' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Get User Credits
+// Get User Credits (Used heavily by Frontend)
 app.post('/api/get-user-credits', async (req, res) => {
     try {
         const uid = req.body.uid || req.headers['x-user-id'];
-
-        if (!uid) {
-            return res.status(400).json({ error: 'Missing uid' });
-        }
+        if (!uid) return res.status(400).json({ error: 'Missing uid' });
 
         const userDoc = await db.collection('users').doc(uid).get();
         
         if (!userDoc.exists) {
-            return res.json({
-                status: 'free',
-                uploadCount: 0,
-                canUpload: true,
-                freeTrialsRemaining: 2,
-                daysRemaining: 0
-            });
+            return res.json({ status: 'free', uploadCount: 0, canUpload: true, freeTrialsRemaining: 2, daysRemaining: 0 });
         }
 
         let userData = userDoc.data();
         let currentStatus = userData.status || 'free';
+        let isPro = userData.isPro || currentStatus === 'Pro';
         
-        const todayStr = new Date().toDateString();
-        let testsUsedToday = userData.testsUsedToday || 0;
-        if (userData.lastTestDate !== todayStr) {
-            testsUsedToday = 0;
-        }
-        const freeTrialsRemaining = Math.max(0, 2 - testsUsedToday);
+        const today = getTodayString();
+        const lastTrialDate = userData.lastTrialDate || userData.lastTestDate || null;
+        let trialsUsed = userData.trialsUsed !== undefined ? userData.trialsUsed : (userData.testsUsedToday || 0);
 
-        if ((currentStatus === 'Pro' || userData.isPro) && userData.expiryDate) {
+        if (lastTrialDate !== today) {
+            trialsUsed = 0;
+        }
+
+        if (isPro && userData.expiryDate) {
             const expiryDate = userData.expiryDate.toDate ? userData.expiryDate.toDate() : new Date(userData.expiryDate);
-            const now = new Date();
-            if (now > expiryDate) {
+            if (new Date() > expiryDate) {
                 currentStatus = 'free';
-                await db.collection('users').doc(uid).update({
-                    status: 'free',
-                    isPro: false,
-                    uploadCount: 0
-                });
+                isPro = false;
+                await db.collection('users').doc(uid).update({ status: 'free', isPro: false });
             }
         }
 
         let daysRemaining = 0;
-        if (currentStatus === 'Pro' && userData.expiryDate) {
+        if (isPro && userData.expiryDate) {
             const expiryDate = userData.expiryDate.toDate ? userData.expiryDate.toDate() : new Date(userData.expiryDate);
-            const now = new Date();
-            const diffTime = expiryDate - now;
-            daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            daysRemaining = Math.ceil((expiryDate - new Date()) / (1000 * 60 * 60 * 24));
         }
 
         res.json({
-            status: currentStatus,
-            uploadCount: testsUsedToday,
-            canUpload: currentStatus === 'Pro' || testsUsedToday < 2,
-            freeTrialsRemaining: freeTrialsRemaining,
-            daysRemaining: daysRemaining,
+            status: isPro ? 'Pro' : 'free',
+            uploadCount: trialsUsed,
+            canUpload: isPro || trialsUsed < 2,
+            freeTrialsRemaining: Math.max(0, 2 - trialsUsed),
+            daysRemaining: Math.max(0, daysRemaining),
             expiryDate: userData.expiryDate ? (userData.expiryDate.toDate ? userData.expiryDate.toDate() : new Date(userData.expiryDate)) : null
         });
-    } catch (err) {
-        console.error('Error getting user credits:', err);
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // Check Upload Limit
 app.post('/api/check-upload-limit', async (req, res) => {
     try {
         const uid = req.body.uid || req.headers['x-user-id'];
-
-        if (!uid) {
-            return res.status(400).json({ error: 'Missing uid' });
-        }
+        if (!uid) return res.status(400).json({ error: 'Missing uid' });
 
         let userDoc = await db.collection('users').doc(uid).get();
-        
-        if (!userDoc.exists) {
-            return res.json({ canUpload: true, isFirstUpload: true, uploadCount: 0 });
-        }
+        if (!userDoc.exists) return res.json({ canUpload: true, uploadCount: 0 });
 
         let userData = userDoc.data();
-        let currentStatus = userData.status || 'free';
+        let isPro = userData.isPro || userData.status === 'Pro';
         
-        const todayStr = new Date().toDateString();
-        let testsUsedToday = userData.testsUsedToday || 0;
-        if (userData.lastTestDate !== todayStr) {
-            testsUsedToday = 0;
-            await db.collection('users').doc(uid).update({ testsUsedToday: 0, lastTestDate: todayStr }).catch(e => console.error(e));
+        const today = getTodayString();
+        const lastTrialDate = userData.lastTrialDate || userData.lastTestDate || null;
+        let trialsUsed = userData.trialsUsed !== undefined ? userData.trialsUsed : (userData.testsUsedToday || 0);
+
+        if (lastTrialDate !== today) {
+            trialsUsed = 0;
         }
 
-        if (currentStatus === 'Pro' && userData.expiryDate) {
+        if (isPro && userData.expiryDate) {
             const expiryDate = userData.expiryDate.toDate ? userData.expiryDate.toDate() : new Date(userData.expiryDate);
-            const now = new Date();
-            if (now > expiryDate) {
-                currentStatus = 'free';
-                await db.collection('users').doc(uid).update({
-                    status: 'free',
-                    isPro: false
-                });
+            if (new Date() > expiryDate) {
+                isPro = false;
+                await db.collection('users').doc(uid).update({ status: 'free', isPro: false });
             }
         }
 
-        if (currentStatus === 'Pro') {
-            return res.json({ 
-                canUpload: true, 
-                status: 'Pro',
-                isPro: true
-            });
+        if (isPro) {
+            return res.json({ canUpload: true, status: 'Pro', isPro: true });
         }
 
-        if (testsUsedToday >= 2) {
-            return res.json({ 
-                canUpload: false, 
-                uploadCount: testsUsedToday,
-                reason: 'Free limit reached',
-                status: 'free'
-            });
+        if (trialsUsed >= 2) {
+            return res.json({ canUpload: false, uploadCount: trialsUsed, reason: 'Free limit reached', status: 'free' });
         }
 
-        res.json({ 
-            canUpload: true, 
-            uploadCount: testsUsedToday,
-            uploadsRemaining: 2 - testsUsedToday,
-            status: 'free'
-        });
-    } catch (err) {
-        console.error('Error checking upload limit:', err);
-        res.status(500).json({ error: err.message });
-    }
+        res.json({ canUpload: true, uploadCount: trialsUsed, uploadsRemaining: 2 - trialsUsed, status: 'free' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // Increment Upload Count
-app.post('/api/increment-usage', async (req, res) => {
-    try {
-        res.json({ success: true });
-    } catch (err) {
-        console.error('Error incrementing usage:', err);
-        res.status(500).json({ error: err.message });
-    }
-});
+app.post('/api/increment-usage', async (req, res) => { res.json({ success: true }); });
 
-// Unified Analysis Endpoint
+// Unified Analysis Endpoint (The Main Engine)
 app.post('/api/analyze', async (req, res) => {
     try {
         const { base64, mimeType, base64_b, mimeType_b } = req.body;
@@ -768,15 +587,14 @@ app.post('/api/analyze', async (req, res) => {
         if (!base64 || !mimeType) {
             return res.status(400).json({ error: 'Missing base64 or mimeType for Thumbnail A' });
         }
-
         if (!uid) {
             return res.status(401).json({ error: 'userNotFound', message: 'Please Login First' });
         }
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = getTodayString();
         const userRef = db.collection('users').doc(uid);
-
         const userSnap = await userRef.get();
+        
         let isPro = false;
         let trialsUsed = 0;
         
@@ -788,24 +606,21 @@ app.post('/api/analyze', async (req, res) => {
                 if (new Date() > expiry) isPro = false;
             }
             
-            trialsUsed = uData.trialsUsed || 0; 
-            const lastTrialDate = uData.lastTrialDate || null;
+            // Bulletproof old user migration
+            const lastTrialDate = uData.lastTrialDate || uData.lastTestDate || null;
+            trialsUsed = uData.trialsUsed !== undefined ? uData.trialsUsed : (uData.testsUsedToday || 0);
             
             if (lastTrialDate !== today) {
-                trialsUsed = 0;
+                trialsUsed = 0; // Fresh day!
             }
         }
 
-        if (!isPro) {
-            if (trialsUsed >= 2) {
-                return res.status(403).json({ error: 'noCredits', message: 'Free trials exhausted. Please upgrade to Pro.' });
-            }
+        if (!isPro && trialsUsed >= 2) {
+            return res.status(403).json({ error: 'noCredits', message: 'Free trials exhausted. Please upgrade to Pro.' });
         }
 
         const apiKey = process.env.OPENROUTER_API_KEY;
-        if (!apiKey) {
-            return res.status(500).json({ error: 'API key not configured' });
-        }
+        if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
         const isABTest = !!(base64_b && mimeType_b);
         let messages = [];
@@ -832,10 +647,7 @@ app.post('/api/analyze', async (req, res) => {
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-            body: JSON.stringify({
-                model: 'google/gemini-2.0-flash-lite-001',
-                messages: messages
-            })
+            body: JSON.stringify({ model: 'google/gemini-2.0-flash-lite-001', messages: messages })
         });
 
         const data = await response.json();
@@ -848,18 +660,16 @@ app.post('/api/analyze', async (req, res) => {
             try {
                 await db.runTransaction(async (transaction) => {
                     const userDoc = await transaction.get(userRef);
-
+                    
                     if (!userDoc.exists) {
                         transaction.set(userRef, { 
-                            isPro: false, 
-                            status: 'free', 
-                            createdAt: new Date(),
-                            trialsUsed: 1,
-                            lastTrialDate: today
+                            isPro: false, status: 'free', createdAt: new Date(), trialsUsed: 1, lastTrialDate: today
                         }, { merge: true });
                     } else {
                         const uData = userDoc.data() || {};
-                        let currentTrials = (uData.lastTrialDate === today) ? (uData.trialsUsed || 0) : 0;
+                        const lastTrialDate = uData.lastTrialDate || uData.lastTestDate || null;
+                        let currentTrials = (lastTrialDate === today) ? (uData.trialsUsed !== undefined ? uData.trialsUsed : (uData.testsUsedToday || 0)) : 0;
+                        
                         transaction.set(userRef, {
                             isPro: uData.isPro === undefined ? false : uData.isPro,
                             trialsUsed: currentTrials + 1,
@@ -867,9 +677,7 @@ app.post('/api/analyze', async (req, res) => {
                         }, { merge: true });
                     }
                 });
-            } catch (txError) {
-                console.error('Usage Transaction Error:', txError);
-            }
+            } catch (txError) { console.error('Usage Transaction Error:', txError); }
         }
 
         res.json(finalResult);
@@ -880,27 +688,17 @@ app.post('/api/analyze', async (req, res) => {
 });
 
 // Health check
-app.get('/health', (req, res) => {
-    res.json({ status: 'Server is running' });
-});
+app.get('/health', (req, res) => { res.json({ status: 'Server is running' }); });
 
 // Global Error Handler
 app.use((err, req, res, next) => {
     console.error('Unhandled Error:', err.message);
-    res.status(500).json({
-        error: 'Internal server error: ' + (err.message || 'Unknown'),
-        path: req.url,
-        timestamp: new Date().toISOString()
-    });
+    res.status(500).json({ error: 'Internal server error: ' + (err.message || 'Unknown'), path: req.url, timestamp: new Date().toISOString() });
 });
 
 // 404 Handler
 app.use((req, res) => {
-    res.status(404).json({
-        error: 'Route not found: ' + req.url,
-        method: req.method,
-        timestamp: new Date().toISOString()
-    });
+    res.status(404).json({ error: 'Route not found: ' + req.url, method: req.method, timestamp: new Date().toISOString() });
 });
 
 const PORT = process.env.PORT || 3000;

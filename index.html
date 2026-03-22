@@ -409,7 +409,7 @@
         }
 
         .drop-zone-wrapper {
-            width: 50%;
+            flex: 1;
             display: flex;
             flex-direction: column;
         }
@@ -423,6 +423,24 @@
             margin-top: 1rem;
             display: none;
         }
+
+        /* A/B Test Toggle Button */
+        .btn-toggle-ab {
+            background: transparent; 
+            color: #38bdf8; 
+            border: 1px dashed #334155; 
+            padding: 0.5rem 1rem; 
+            border-radius: 0.5rem; 
+            cursor: pointer; 
+            font-size: 0.9rem; 
+            transition: all 0.3s ease; 
+            width: auto; 
+            margin: 0 auto; 
+            display: inline-block;
+        }
+        .btn-toggle-ab:hover { background: #1e293b; border-color: #38bdf8; }
+        .btn-toggle-ab.remove { color: #ef4444; border-color: #ef4444; }
+        .btn-toggle-ab.remove:hover { background: #450a0a; border-color: #f87171; }
 
         /* Title Section */
         .title-section {
@@ -870,7 +888,7 @@
                     <img id="previewA">
                 </div>
             </div>
-            <div class="drop-zone-wrapper">
+            <div class="drop-zone-wrapper" id="wrapperB" style="display: none;">
                 <div class="section-title">🖼️ Thumbnail B (Optional)</div>
                 <div class="drag-drop-zone" id="dragDropZoneB">
                     <div class="drag-drop-icon">
@@ -882,6 +900,12 @@
                     <img id="previewB">
                 </div>
             </div>
+        </div>
+
+        <div id="addThumbnailBContainer" style="text-align: center; margin-top: -0.5rem; margin-bottom: 1.5rem;">
+            <button id="addThumbnailBBtn" class="btn-toggle-ab" onclick="toggleThumbnailB()">
+                + Add Thumbnail B for A/B Testing
+            </button>
         </div>
 
         <div id="titleGeneratorContainer" style="display: none; text-align: left; margin: 1.5rem 0;">
@@ -1512,16 +1536,36 @@
                 document.getElementById('tabABTest').classList.add('active');
                 document.getElementById('tabTitleGen').classList.remove('active');
                 document.getElementById('abTestingContainer').style.display = 'flex';
+                document.getElementById('addThumbnailBContainer').style.display = 'block';
                 document.getElementById('titleGeneratorContainer').style.display = 'none';
             } else {
                 document.getElementById('tabTitleGen').classList.add('active');
                 document.getElementById('tabABTest').classList.remove('active');
                 document.getElementById('abTestingContainer').style.display = 'none';
+                document.getElementById('addThumbnailBContainer').style.display = 'none';
                 document.getElementById('titleGeneratorContainer').style.display = 'block';
             }
             
             document.getElementById('errorBox').style.display = 'none';
             document.getElementById('combinedResult').classList.remove('show');
+        }
+
+        function toggleThumbnailB() {
+            const wrapperB = document.getElementById('wrapperB');
+            const btn = document.getElementById('addThumbnailBBtn');
+            
+            if (wrapperB.style.display === 'none') {
+                wrapperB.style.display = 'flex';
+                btn.innerHTML = '− Remove Thumbnail B';
+                btn.classList.add('remove');
+            } else {
+                wrapperB.style.display = 'none';
+                btn.innerHTML = '+ Add Thumbnail B for A/B Testing';
+                btn.classList.remove('remove');
+                fileInputB.value = '';
+                previewB.src = '';
+                previewB.style.display = 'none';
+            }
         }
 
         // Analyze function

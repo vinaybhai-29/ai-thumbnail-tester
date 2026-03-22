@@ -858,7 +858,6 @@
         </div>
 
         <div class="tabs-container">
-            <button class="tab-btn active" id="tabSingle" onclick="switchTab('single')">🖼️ Single Check</button>
             <button class="tab-btn" id="tabABTest" onclick="switchTab('ab-testing')">📊 A/B Testing</button>
             <button class="tab-btn" id="tabTitleGen" onclick="switchTab('title-generator')">✍️ Title Gen</button>
         </div>
@@ -1512,9 +1511,11 @@
         }
 
         function switchTab(tab) {
+            if (currentTab === tab) {
+                tab = 'single';
+            }
             currentTab = tab;
             
-            document.getElementById('tabSingle').classList.remove('active');
             document.getElementById('tabABTest').classList.remove('active');
             document.getElementById('tabTitleGen').classList.remove('active');
             
@@ -1523,7 +1524,6 @@
             const wrapperB = document.getElementById('wrapperB');
             
             if (tab === 'single') {
-                document.getElementById('tabSingle').classList.add('active');
                 abContainer.style.display = 'flex';
                 titleGen.style.display = 'none';
                 wrapperB.style.display = 'none';

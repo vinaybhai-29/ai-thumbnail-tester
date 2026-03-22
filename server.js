@@ -23,7 +23,8 @@ let db;
 try {
     if (admin.apps.length === 0) {
         admin.initializeApp({
-            projectId: firebaseConfig.projectId || process.env.FIREBASE_PROJECT_ID,
+            projectId: credential: admin.credential.cert(JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON)),
+projectId: process.env.FIREBASE_PROJECT_ID, || process.env.FIREBASE_PROJECT_ID,
         });
     }
     db = admin.firestore();

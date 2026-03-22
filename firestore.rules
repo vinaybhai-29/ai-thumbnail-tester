@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    match /users/{userId} {
+      // Client can only read their own top-level document to check Pro status
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if false; // All writes must come through Node.js backend
+      
+      match /usage/{date} {
+        // Sub-collections completely locked down from frontend modifications
+        allow read, write: if false;
+      }
+    }
+  }
+}

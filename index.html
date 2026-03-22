@@ -1107,6 +1107,10 @@
 
                 // Handle Redirect Result for Mobile Compatibility
                 auth.getRedirectResult().then(async (result) => {
+                    if (result && result.credential) {
+                        console.log("Redirect login successful");
+                    }
+                    
                     if (result && result.user) {
                         const user = result.user;
                         // Save user to backend/Firestore
@@ -1124,8 +1128,9 @@
                         console.log('User signed in via redirect:', user.uid, user.email);
                         document.getElementById('authModal').classList.remove('active');
                     }
-                }).catch(err => {
-                    console.error('Error during Google redirect sign in:', err);
+                }).catch(error => {
+                    console.error("Redirect Auth Error:", error.message);
+                    alert("Login Error: Please check if your browser blocks third-party cookies.");
                 });
 
                 // Check if user is already logged in

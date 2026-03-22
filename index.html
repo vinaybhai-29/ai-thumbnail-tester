@@ -322,6 +322,28 @@
             to { transform: translateY(-10px); opacity: 1; } 
         }
 
+        /* Tabs Styling */
+        .tabs-container {
+            display: flex;
+            background: #0f172a;
+            border-radius: 0.75rem;
+            padding: 0.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #334155;
+            gap: 0.5rem;
+        }
+        .tab-btn {
+            flex: 1; background: transparent; color: #94a3b8; border: none;
+            padding: 0.75rem; border-radius: 0.5rem; font-weight: 600;
+            cursor: pointer; transition: all 0.3s ease; font-size: 0.95rem;
+        }
+        .tab-btn:hover { color: #cbd5e1; background: #1e293b; }
+        .tab-btn.active {
+            background: #334155; color: #38bdf8;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #475569;
+        }
+
         /* Drag & Drop Zone */
         .drag-drop-zone {
             border: 3px dashed #38bdf8;
@@ -830,7 +852,12 @@
             <div class="free-trials-badge" id="trialBadge">🎁 2 Free Daily Trials</div>
         </div>
 
-        <div class="upload-container">
+        <div class="tabs-container">
+            <button class="tab-btn active" id="tabABTest" onclick="switchTab('ab-testing')">📊 A/B Testing</button>
+            <button class="tab-btn" id="tabTitleGen" onclick="switchTab('title-generator')">✍️ Title Generator</button>
+        </div>
+
+        <div class="upload-container" id="abTestingContainer">
             <div class="drop-zone-wrapper">
                 <div class="section-title">🖼️ Thumbnail A (Required)</div>
                 <div class="drag-drop-zone" id="dragDropZoneA">
@@ -855,6 +882,18 @@
                     <img id="previewB">
                 </div>
             </div>
+        </div>
+
+        <div id="titleGeneratorContainer" style="display: none; text-align: left; margin: 1.5rem 0;">
+            <div class="section-title">📝 Video Topic / Idea</div>
+            <textarea id="videoTopic" class="title-input" rows="4" placeholder="e.g. How to make a viral YouTube thumbnail..." style="resize: vertical; min-height: 100px;"></textarea>
+
+            <div class="section-title" style="margin-top: 1.5rem;">🌐 Target Language</div>
+            <select id="titleLanguage" class="title-input" style="cursor: pointer;">
+                <option value="English">English</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Hinglish">Hinglish</option>
+            </select>
         </div>
 
         <button id="btn" onclick="analyze()">🚀 Analyze</button>
@@ -1074,6 +1113,7 @@
         var userCredits = null;
         var userStatus = 'free';
         var uploadCount = 0;
+        var currentTab = 'ab-testing';
 
         var fileInputA = document.getElementById('fileInputA');
         var fileInputB = document.getElementById('fileInputB');
@@ -1465,8 +1505,54 @@
             setTimeout(() => { toast.classList.remove('show'); }, duration);
         }
 
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            if (tab === 'ab-testing') {
+                document.getElementById('tabABTest').classList.add('active');
+                document.getElementById('tabTitleGen').classList.remove('active');
+                document.getElementById('abTestingContainer').style.display = 'flex';
+                document.getElementById('titleGeneratorContainer').style.display = 'none';
+            } else {
+                document.getElementById('tabTitleGen').classList.add('active');
+                document.getElementById('tabABTest').classList.remove('active');
+                document.getElementById('abTestingContainer').style.display = 'none';
+                document.getElementById('titleGeneratorContainer').style.display = 'block';
+            }
+            
+            document.getElementById('errorBox').style.display = 'none';
+            document.getElementById('combinedResult').classList.remove('show');
+        }
+
         // Analyze function
         async function analyze() {
+            if (currentTab === 'title-generator') {
+                const topic = document.getElementById('videoTopic').value.trim();
+                if (!topic) return alert("📝 Please enter a video topic!");
+                
+                if (!currentUser) {
+                    document.getElementById('authModal').classList.add('active');
+                    return;
+                }
+
+                const canAnalyze = await checkUploadLimitBeforeAnalysis();
+                if (!canAnalyze) return;
+
+                btn.disabled = true;
+                btn.innerText = "🚀 Analyzing...";
+                loader.classList.add('active');
+                document.getElementById('loaderText').innerText = 'Generating titles...';
+                
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerText = "🚀 Analyze";
+                    loader.classList.remove('active');
+                    alert("Backend integration for Title Generator is coming soon!");
+                }, 1500);
+                
+                return;
+            }
+
             if (!fileInputA.files[0]) {
                 return alert("📸 Please select at least Thumbnail A!");
             }

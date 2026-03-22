@@ -799,36 +799,31 @@
         <h1>✨ AI Studio Pro</h1>
         <p style="color: #94a3b8;">Optimize Your YouTube Content</p>
 
-        <!-- Drag & Drop Thumbnail Section -->
+        <!-- A/B Thumbnail Testing Section -->
         <div class="title-section">
-            <div class="section-title">📸 Upload Thumbnail</div>
-            <div class="drag-drop-zone" id="dragDropZone">
-                <div class="drag-drop-icon">📁</div>
-                <div class="drag-drop-text">Drag & Drop Your Thumbnail</div>
+            <div class="section-title">🖼️ Thumbnail A</div>
+            <div class="drag-drop-zone" id="dragDropZoneA">
+                <div class="drag-drop-icon">🅰️</div>
+                <div class="drag-drop-text">Drag & Drop Thumbnail A</div>
                 <div class="drag-drop-subtext">or click to browse</div>
-                <input type="file" id="fileInput" hidden accept="image/*">
-                <img id="dragDropPreview">
+                <input type="file" id="fileInputA" hidden accept="image/*">
+                <img id="dragDropPreviewA">
             </div>
         </div>
 
-        <!-- Title Generator Section -->
         <div class="title-section">
-            <div class="section-title">✍️ Video Title</div>
-            <input 
-                type="text" 
-                id="titleInput" 
-                class="title-input" 
-                placeholder="Enter your video title (or let us generate one!)"
-                maxlength="100"
-            >
-            <button id="generateTitlesBtn" class="generate-titles-btn">💡 Generate Better Titles</button>
-            <div id="suggestedTitles" class="suggested-titles">
-                <div id="titlesList"></div>
+            <div class="section-title">🖼️ Thumbnail B</div>
+            <div class="drag-drop-zone" id="dragDropZoneB">
+                <div class="drag-drop-icon">🅱️</div>
+                <div class="drag-drop-text">Drag & Drop Thumbnail B</div>
+                <div class="drag-drop-subtext">or click to browse</div>
+                <input type="file" id="fileInputB" hidden accept="image/*">
+                <img id="dragDropPreviewB">
             </div>
         </div>
 
-        <!-- Analyze Button -->
-        <button id="btn">🚀 Analyze Now (Thumbnail + Title)</button>
+        <!-- Compare Button -->
+        <button id="btn" onclick="compareThumbnails()">🚀 Compare Thumbnails</button>
 
         <!-- Loader -->
         <div class="loader" id="loader">
@@ -1069,7 +1064,8 @@
         var userStatus = 'free';
         var uploadCount = 0;
 
-        var fileInput = document.getElementById('fileInput');
+        var fileInputA = document.getElementById('fileInputA');
+        var fileInputB = document.getElementById('fileInputB');
         var btn = document.getElementById('btn');
         var loader = document.getElementById('loader');
         var authModal = document.getElementById('authModal');
@@ -1405,51 +1401,68 @@
             }
         }
 
-        // File Input Handler - Updated for Drag & Drop
-        const dragDropZone = document.getElementById('dragDropZone');
-        const dragDropPreview = document.getElementById('dragDropPreview');
-        
-        fileInput.onchange = () => {
-            const file = fileInput.files[0];
+        // File Input Handlers for A/B
+        const dragDropZoneA = document.getElementById('dragDropZoneA');
+        const dragDropPreviewA = document.getElementById('dragDropPreviewA');
+        const dragDropZoneB = document.getElementById('dragDropZoneB');
+        const dragDropPreviewB = document.getElementById('dragDropPreviewB');
+
+        fileInputA.onchange = () => {
+            const file = fileInputA.files[0];
             if (file && file.type.startsWith('image/')) {
-                displayThumbnailPreview(file);
+                displayThumbnailPreview(file, 'A');
             } else {
-                alert('Please select a valid image file');
+                alert('Please select a valid image file for Thumbnail A');
+            }
+        };
+
+        fileInputB.onchange = () => {
+            const file = fileInputB.files[0];
+            if (file && file.type.startsWith('image/')) {
+                displayThumbnailPreview(file, 'B');
+            } else {
+                alert('Please select a valid image file for Thumbnail B');
             }
         };
 
         // Drag & Drop Event Handlers
-        dragDropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dragDropZone.classList.add('dragover');
-        });
+        function setupDragDrop(zone, input, preview) {
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('dragover');
+            });
 
-        dragDropZone.addEventListener('dragleave', () => {
-            dragDropZone.classList.remove('dragover');
-        });
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('dragover');
+            });
 
-        dragDropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dragDropZone.classList.remove('dragover');
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0 && files[0].type.startsWith('image/')) {
-                fileInput.files = files;
-                displayThumbnailPreview(files[0]);
-            } else {
-                alert('Please drop a valid image file');
-            }
-        });
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0 && files[0].type.startsWith('image/')) {
+                    input.files = files;
+                    displayThumbnailPreview(files[0], preview.id.slice(-1));
+                } else {
+                    alert('Please drop a valid image file');
+                }
+            });
 
-        dragDropZone.addEventListener('click', () => {
-            fileInput.click();
-        });
+            zone.addEventListener('click', () => {
+                input.click();
+            });
+        }
 
-        function displayThumbnailPreview(file) {
+        setupDragDrop(dragDropZoneA, fileInputA, dragDropPreviewA);
+        setupDragDrop(dragDropZoneB, fileInputB, dragDropPreviewB);
+
+        function displayThumbnailPreview(file, slot) {
             const reader = new FileReader();
+            const preview = document.getElementById('dragDropPreview' + slot);
             reader.onload = (e) => {
-                dragDropPreview.src = e.target.result;
-                dragDropPreview.style.display = 'block';
+                preview.src = e.target.result;
+                preview.style.display = 'block';
                 document.getElementById('errorBox').style.display = 'none';
                 document.getElementById('combinedResult').classList.remove('show');
             };
@@ -1466,133 +1479,72 @@
             }, duration);
         }
 
-        // Generate Better Titles
-        document.getElementById('generateTitlesBtn').onclick = async () => {
-            const titleInput = document.getElementById('titleInput');
-            const titleText = titleInput.value.trim();
-
-            if (!titleText) {
-                alert('Please enter a video title first!');
-                return;
+        // Compare Thumbnails function
+        async function compareThumbnails() {
+            if (!fileInputA.files[0] || !fileInputB.files[0]) {
+                return alert("📸 Please select both Thumbnail A and Thumbnail B!");
             }
 
-            // Check if user is logged in
             if (!currentUser) {
-                alert('🔐 Please login first to generate titles!');
+                alert('🔐 Please login first to compare thumbnails!');
                 document.getElementById('authModal').classList.add('active');
                 return;
             }
 
-            const btn = document.getElementById('generateTitlesBtn');
-            btn.disabled = true;
-            btn.innerHTML = '⏳ Generating...';
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/generate-titles`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'x-user-id': currentUser ? currentUser.uid : ''
-                    },
-                    body: JSON.stringify({
-                        title: titleText,
-                        uid: currentUser ? currentUser.uid : null
-                    })
-                });
-
-                const data = await response.json();
-                if (!response.ok) {
-                    if (data.error === 'userNotFound' || data.error === 'unauthorized') throw new Error('Please Login First to use the tool');
-                    throw new Error(data.error || 'Failed to generate titles');
-                }
-
-                // Display suggested titles
-                const titlesList = document.getElementById('titlesList');
-                titlesList.innerHTML = '';
-                data.titles.forEach(title => {
-                    const div = document.createElement('div');
-                    div.className = 'suggested-title-item';
-                    div.innerText = title;
-                    div.onclick = () => {
-                        titleInput.value = title;
-                        document.getElementById('suggestedTitles').classList.remove('show');
-                    };
-                    titlesList.appendChild(div);
-                });
-
-                document.getElementById('suggestedTitles').classList.add('show');
-                showToast('✨ Titles generated! Click one to use it.');
-
-            } catch (err) {
-                console.error('Error:', err);
-                const errorMsg = err.message;
-                if (errorMsg.includes('Please Login First')) {
-                    alert('🔐 ' + errorMsg + '\n\nClick OK to login');
-                    document.getElementById('signInBtn').click();
-                } else {
-                    alert('Failed to generate titles: ' + errorMsg);
-                }
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '💡 Generate Better Titles';
+            const canAnalyze = await checkUploadLimitBeforeAnalysis();
+            if (!canAnalyze) {
+                return;
             }
-        };
 
-        // Copy Analysis
-        function copyAnalysis() {
-            const thumbnailScore = document.getElementById('thumbnailScore').innerText;
-            const titleScore = document.getElementById('titleScore').innerText;
-            const combinedScore = document.getElementById('combinedScore').innerText;
-            const analysis = document.getElementById('analysisText').innerText;
-            const tips = document.getElementById('tipsList').innerText;
+            btn.disabled = true;
+            btn.innerText = "🚀 Comparing...";
+            loader.classList.add('active');
+            document.getElementById('errorBox').style.display = 'none';
+            document.getElementById('combinedResult').classList.remove('show');
 
-            const fullText = `Combined Analysis Results\n\nScores:\n- Thumbnail: ${thumbnailScore}\n- Title: ${titleScore}\n- Combined: ${combinedScore}\n\nAnalysis:\n${analysis}\n\nTips:\n${tips}`;
+            startLoaderAnimation();
 
-            navigator.clipboard.writeText(fullText).then(() => {
-                document.getElementById('copyBtn').innerText = '✅ Copied!';
-                setTimeout(() => document.getElementById('copyBtn').innerText = '📋 Copy Analysis', 2000);
-            });
-        }
+            const readerA = new FileReader();
+            const readerB = new FileReader();
 
-        // Get Score Color
-        function getScoreColor(score) {
-            if (score >= 75) return 'high';
-            if (score >= 50) return 'medium';
-            return 'low';
-        }
+            readerA.readAsDataURL(fileInputA.files[0]);
+            readerA.onload = () => {
+                readerB.readAsDataURL(fileInputB.files[0]);
+                readerB.onload = async () => {
+                    try {
+                        const base64A = readerA.result.split(',')[1];
+                        const mimeTypeA = fileInputA.files[0].type;
+                        const base64B = readerB.result.split(',')[1];
+                        const mimeTypeB = fileInputB.files[0].type;
 
-        // Display Combined Result
-        function displayCombinedResult(analysis) {
-            const result = document.getElementById('combinedResult');
-            
-            // Update scores
-            document.getElementById('thumbnailScore').innerText = analysis.thumbnailScore;
-            document.getElementById('thumbnailScore').className = 'score-card-value ' + getScoreColor(analysis.thumbnailScore);
-            
-            document.getElementById('titleScore').innerText = analysis.titleScore;
-            document.getElementById('titleScore').className = 'score-card-value ' + getScoreColor(analysis.titleScore);
-            
-            document.getElementById('combinedScore').innerText = analysis.combinedScore;
-            document.getElementById('combinedScore').className = 'score-card-value ' + getScoreColor(analysis.combinedScore);
+                        const analysis = await analyzeWithToast(base64A, mimeTypeA, base64B, mimeTypeB);
 
-            // Update analysis text
-            document.getElementById('analysisText').innerText = analysis.analysis;
+                        displayCombinedResult(analysis);
 
-            // Update tips
-            const tipsList = document.getElementById('tipsList');
-            tipsList.innerHTML = '';
-            analysis.tips.forEach(tip => {
-                const div = document.createElement('div');
-                div.className = 'tip-item';
-                div.innerText = '• ' + tip;
-                tipsList.appendChild(div);
-            });
+                        uploadCount++;
 
-            result.classList.add('show');
+                    } catch (err) {
+                        const errorMsg = err.message;
+                        if (errorMsg.includes('Please Login First')) {
+                            alert('🔐 ' + errorMsg + '\n\nClick OK to login');
+                            document.getElementById('signInBtn').click();
+                        } else if (errorMsg.includes('No credits')) {
+                            alert('💳 ' + errorMsg);
+                        } else {
+                            document.getElementById('errorBox').innerText = "❌ Error: " + errorMsg;
+                            document.getElementById('errorBox').style.display = 'block';
+                        }
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerText = "🚀 Compare Thumbnails";
+                        loader.classList.remove('active');
+                    }
+                };
+            };
         }
 
         // Analyze with Toast for Long Operations
-        async function analyzeWithToast(base64, mimeType, title) {
+        async function analyzeWithToast(base64A, mimeTypeA, base64B, mimeTypeB) {
             const startTime = Date.now();
             let toastShown = false;
             
@@ -1604,16 +1556,17 @@
             }, 8000); // Show toast after 8 seconds
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/analyze-combined`, {
+                const response = await fetch(`${API_BASE_URL}/api/analyze-thumbnail`, {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
                         'x-user-id': currentUser ? currentUser.uid : ''
                     },
                     body: JSON.stringify({
-                        base64: base64,
-                        mimeType: mimeType,
-                        title: title,
+                        base64: base64A,
+                        mimeType: mimeTypeA,
+                        base64_b: base64B,
+                        mimeType_b: mimeTypeB,
                         uid: currentUser ? currentUser.uid : null
                     })
                 });
@@ -1637,83 +1590,60 @@
             }
         }
 
-        // Analyze Button Handler - Updated for Combined Analysis
-        btn.onclick = async () => {
-            const titleInput = document.getElementById('titleInput');
-            const title = titleInput.value.trim();
+        // Get Score Color
+        function getScoreColor(score) {
+            if (score >= 75) return 'high';
+            if (score >= 50) return 'medium';
+            return 'low';
+        }
 
-            if (!fileInput.files[0]) {
-                return alert("📸 Please select a thumbnail first!");
+        // Display Combined Result
+        function displayCombinedResult(analysis) {
+            const result = document.getElementById('combinedResult');
+            
+            if(analysis.winner) {
+                document.getElementById('thumbnailScore').innerText = analysis.winner;
+                document.getElementById('titleScore').innerText = '';
+                document.getElementById('combinedScore').innerText = '';
+                document.getElementById('analysisText').innerText = analysis.explanation;
+                
+                const tipsList = document.getElementById('tipsList');
+                tipsList.innerHTML = '';
+            } else {
+                // Update scores
+                document.getElementById('thumbnailScore').innerText = analysis.thumbnailScore;
+                document.getElementById('thumbnailScore').className = 'score-card-value ' + getScoreColor(analysis.thumbnailScore);
+                
+                document.getElementById('titleScore').innerText = analysis.titleScore;
+                document.getElementById('titleScore').className = 'score-card-value ' + getScoreColor(analysis.titleScore);
+                
+                document.getElementById('combinedScore').innerText = analysis.combinedScore;
+                document.getElementById('combinedScore').className = 'score-card-value ' + getScoreColor(analysis.combinedScore);
+
+                // Update analysis text
+                document.getElementById('analysisText').innerText = analysis.analysis;
+
+                // Update tips
+                const tipsList = document.getElementById('tipsList');
+                tipsList.innerHTML = '';
+                analysis.tips.forEach(tip => {
+                    const div = document.createElement('div');
+                    div.className = 'tip-item';
+                    div.innerText = '• ' + tip;
+                    tipsList.appendChild(div);
+                });
             }
 
-            if (!title) {
-                return alert("✍️ Please enter a video title!");
-            }
-
-            // Check if user is logged in
-            if (!currentUser) {
-                alert('🔐 Please login first to analyze thumbnails!');
-                document.getElementById('authModal').classList.add('active');
-                return;
-            }
-
-            // Check upload limit
-            const canAnalyze = await checkUploadLimitBeforeAnalysis();
-            if (!canAnalyze) {
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerText = "🚀 Analyzing...";
-            loader.classList.add('active');
-            document.getElementById('errorBox').style.display = 'none';
-            document.getElementById('combinedResult').classList.remove('show');
-
-            startLoaderAnimation();
-
-            const reader = new FileReader();
-            reader.readAsDataURL(fileInput.files[0]);
-
-            reader.onload = async () => {
-                try {
-                    const base64 = reader.result.split(',')[1];
-                    const mimeType = fileInput.files[0].type;
-
-                    const analysis = await analyzeWithToast(base64, mimeType, title);
-
-                    displayCombinedResult(analysis);
-
-                    // Increment usage after successful analysis
-                    // Note: Backend /api/analyze-combined already strictly increments daily usage limits
-                    uploadCount++;
-
-                } catch (err) {
-                    const errorMsg = err.message;
-
-                    if (errorMsg.includes('Please Login First')) {
-                        alert('🔐 ' + errorMsg + '\n\nClick OK to login');
-                        document.getElementById('signInBtn').click();
-                    } else if (errorMsg.includes('No credits')) {
-                        alert('💳 ' + errorMsg);
-                    } else {
-                        document.getElementById('errorBox').innerText = "❌ Error: " + errorMsg;
-                        document.getElementById('errorBox').style.display = 'block';
-                    }
-                } finally {
-                    btn.disabled = false;
-                    btn.innerText = "🚀 Analyze Now (Thumbnail + Title)";
-                    loader.classList.remove('active');
-                }
-            };
-        };
+            result.classList.add('show');
+        }
 
         // Dynamic Loader Animation
         function startLoaderAnimation() {
             const messages = [
-                'Analyzing thumbnail colors...',
-                'Evaluating title impact...',
-                'Checking CTR potential...',
-                'Generating insights...'
+                'Analyzing thumbnail A...',
+                'Analyzing thumbnail B...',
+                'Comparing designs...',
+                'Declaring a winner...'
             ];
             
             let currentMessage = 0;
@@ -1813,23 +1743,16 @@
             updateLocalStorageUsage();
         }
 
-        function copyTips() {
-            copyAnalysis();
-        }
+        function copyAnalysis() {
+            const winner = document.getElementById('thumbnailScore').innerText;
+            const explanation = document.getElementById('analysisText').innerText;
 
-        // Update test usage in Firestore
-        async function updateTestUsage() {
-            if (currentUser) {
-                await fetch(`${API_BASE_URL}/api/update-test-usage`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        uid: currentUser.uid
-                    })
-                });
-            }
+            const fullText = `A/B Test Result\n\nWinner: ${winner}\n\nExplanation:\n${explanation}`;
+
+            navigator.clipboard.writeText(fullText).then(() => {
+                document.getElementById('copyBtn').innerText = '✅ Copied!';
+                setTimeout(() => document.getElementById('copyBtn').innerText = '📋 Copy Analysis', 2000);
+            });
         }
     </script>
 

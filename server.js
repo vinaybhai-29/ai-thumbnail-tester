@@ -112,11 +112,11 @@ app.get('/api/get-payment-config', (req, res) => {
 // Backend API endpoint for thumbnail analysis
 app.post('/api/analyze-thumbnail', async (req, res) => {
     try {
-        const { base64, mimeType } = req.body;
+        const { base64, mimeType, base64_b, mimeType_b } = req.body;
         const uid = req.body.uid || req.headers['x-user-id'];
 
         if (!base64 || !mimeType) {
-            return res.status(400).json({ error: 'Missing base64 or mimeType' });
+            return res.status(400).json({ error: 'Missing base64 or mimeType for Thumbnail A' });
         }
 
         // If uid is provided, validate user exists and check limits
@@ -160,6 +160,33 @@ app.post('/api/analyze-thumbnail', async (req, res) => {
         if (!apiKey) {
             return res.status(500).json({ error: 'API key not configured' });
         }
+        
+        let content = [];
+        if (base64_b && mimeType_b) {
+            // A/B test prompt
+            content.push({
+                type: 'text',
+                text: "Analyze these two thumbnails and determine which one will have a higher CTR (Click-Through Rate). Declare a clear winner and explain why, focusing on psychology, design, and engagement. Return ONLY a JSON object with 'winner' ('A' or 'B') and 'explanation' (a detailed explanation)."
+            });
+            content.push({
+                type: 'image_url',
+                image_url: { url: `data:${mimeType};base64,${base64}` }
+            });
+            content.push({
+                type: 'image_url',
+                image_url: { url: `data:${mimeType_b};base64,${base64_b}` }
+            });
+        } else {
+            // Single thumbnail analysis prompt
+            content.push({
+                type: 'text',
+                text: "Analyze this YouTube thumbnail for CTR potential. Return ONLY a JSON object with 'score' (0-100 number) and 'tips' (array of exactly 3 improvement tips in English language). No extra text, no markdown."
+            });
+            content.push({
+                type: 'image_url',
+                image_url: { url: `data:${mimeType};base64,${base64}` }
+            });
+        }
 
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
@@ -171,16 +198,7 @@ app.post('/api/analyze-thumbnail', async (req, res) => {
                 model: 'google/gemini-2.0-flash-lite-001',
                 messages: [{
                     role: 'user',
-                    content: [
-                        {
-                            type: 'text',
-                            text: "Analyze this YouTube thumbnail for CTR potential. Return ONLY a JSON object with 'score' (0-100 number) and 'tips' (array of exactly 3 improvement tips in English language). No extra text, no markdown."
-                        },
-                        {
-                            type: 'image_url',
-                            image_url: { url: `data:${mimeType};base64,${base64}` }
-                        }
-                    ]
+                    content: content
                 }]
             })
         });
@@ -227,196 +245,7 @@ app.post('/api/analyze-thumbnail', async (req, res) => {
     }
 });
 
-// Generate Better Titles
-app.post('/api/generate-titles', async (req, res) => {
-    try {
-        const { title } = req.body;
-        const uid = req.body.uid || req.headers['x-user-id'];
 
-        if (!title || title.trim().length === 0) {
-            return res.status(400).json({ error: 'Missing title input' });
-        }
-
-        if (!uid) {
-            return res.status(401).json({ error: 'unauthorized', message: 'Missing user ID. Please login first.' });
-        }
-
-        let userDoc = await db.collection('users').doc(uid).get();
-        if (!userDoc.exists) {
-            console.warn(`⚠️ User not found for title generation: ${uid}. Auto-creating document.`);
-            await db.collection('users').doc(uid).set({
-                createdAt: new Date(),
-                testsUsedToday: 0,
-                totalTestsUsed: 0,
-                lastTestDate: new Date().toDateString(),
-                status: 'free'
-            });
-            userDoc = await db.collection('users').doc(uid).get();
-        }
-
-        const apiKey = process.env.OPENROUTER_API_KEY;
-        if (!apiKey) {
-            return res.status(500).json({ error: 'API key not configured' });
-        }
-
-        // NO GOOGLE SDK USED. Strict Fetch to OpenRouter using existing key.
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: 'google/gemini-2.0-flash-lite-001',
-                messages: [{
-                    role: 'user',
-                    content: `You are a YouTube title expert. Generate 5 catchy, clickable, and SEO-optimized titles based on this input: "${title}". 
-                    
-Return ONLY a JSON object with a 'titles' array containing exactly 5 title strings. Make them engaging, with power words, and between 40-60 characters. No extra text, no markdown.`
-                }]
-            })
-        });
-
-        const data = await response.json();
-        if (data.error) {
-            return res.status(400).json({ error: data.error.message });
-        }
-
-        const aiText = data.choices[0].message.content.replace(/```json|```/g, '').trim();
-        
-        let titles;
-        try {
-            titles = JSON.parse(aiText);
-        } catch (parseErr) {
-            console.error('Failed to parse AI response for titles:', aiText);
-            return res.status(500).json({ error: 'Failed to generate valid titles. Please try again.' });
-        }
-        
-        res.json(titles);
-    } catch (err) {
-        console.error('Error generating titles:', err);
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Combined Analysis (Thumbnail + Title)
-app.post('/api/analyze-combined', async (req, res) => {
-    try {
-        const { base64, mimeType, title } = req.body;
-        const uid = req.body.uid || req.headers['x-user-id'];
-
-        if (!base64 || !mimeType || !title) {
-            return res.status(400).json({ error: 'Missing base64, mimeType, or title' });
-        }
-
-        // If uid is provided, validate user exists
-        if (uid) {
-            let userDoc = await db.collection('users').doc(uid).get();
-            
-            if (!userDoc.exists) {
-                console.warn(`⚠️ User not found for combined analysis: ${uid}. Auto-creating document.`);
-                await db.collection('users').doc(uid).set({
-                    createdAt: new Date(),
-                    testsUsedToday: 0,
-                    totalTestsUsed: 0,
-                    lastTestDate: new Date().toDateString(),
-                    status: 'free'
-                });
-                userDoc = await db.collection('users').doc(uid).get();
-            }
-            
-            const userData = userDoc.data();
-            // Check if user is Pro - allow unlimited combined analysis
-            if (userData.isPro || userData.status === 'Pro') {
-                const expiry = userData.expiryDate ? (userData.expiryDate.toDate ? userData.expiryDate.toDate() : new Date(userData.expiryDate)) : null;
-                if (expiry && new Date() <= expiry) {
-                    console.log(`✅ Pro member ${uid} - combined analysis unlimited`);
-                    // Pro members get unlimited access
-                } else {
-                    // Pro expired
-                    console.log(`⏰ Pro expired for user ${uid}`);
-                    await db.collection('users').doc(uid).update({ isPro: false, status: 'free' });
-                }
-            }
-        }
-
-        const apiKey = process.env.OPENROUTER_API_KEY;
-        if (!apiKey) {
-            return res.status(500).json({ error: 'API key not configured' });
-        }
-
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: 'google/gemini-2.0-flash-lite-001',
-                messages: [{
-                    role: 'user',
-                    content: [
-                        {
-                            type: 'text',
-                            text: `You are a YouTube expert. Analyze this thumbnail and title TOGETHER for clickability potential.
-Title: "${title}"
-
-Return ONLY a JSON object with:
-- 'thumbnailScore' (0-100): CTR score for the thumbnail
-- 'titleScore' (0-100): Clickability score for the title  
-- 'combinedScore' (0-100): Overall combined clickability score
-- 'tips' (array of 5 actionable suggestions to improve clicks)
-- 'analysis' (2-3 sentences about the thumbnail-title synergy)
-
-No extra text, no markdown.`
-                        },
-                        {
-                            type: 'image_url',
-                            image_url: { url: `data:${mimeType};base64,${base64}` }
-                        }
-                    ]
-                }]
-            })
-        });
-
-        const data = await response.json();
-        if (data.error) {
-            return res.status(400).json({ error: data.error.message });
-        }
-
-        const aiText = data.choices[0].message.content.replace(/```json|```/g, '').trim();
-        const analysis = JSON.parse(aiText);
-
-        // Update usage if user is logged in
-        if (uid) {
-            try {
-                const userDoc = await db.collection('users').doc(uid).get();
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
-                    const todayStr = new Date().toDateString();
-                    let testsUsedToday = userData.testsUsedToday || 0;
-                    
-                    if (userData.lastTestDate !== todayStr) {
-                        testsUsedToday = 0;
-                    }
-                    
-                    await db.collection('users').doc(uid).update({
-                        testsUsedToday: testsUsedToday + 1,
-                        totalTestsUsed: (userData.totalTestsUsed || 0) + 1,
-                        lastTestDate: todayStr
-                    });
-                }
-            } catch (updateErr) {
-                console.error('Error updating test usage:', updateErr);
-            }
-        }
-
-        res.json(analysis);
-    } catch (err) {
-        console.error('Error in combined analysis:', err);
-        res.status(500).json({ error: err.message });
-    }
-});
 
 // Save user to Firestore after authentication
 app.post('/api/verify-phone-auth', async (req, res) => {

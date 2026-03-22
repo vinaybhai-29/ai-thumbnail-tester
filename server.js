@@ -773,12 +773,12 @@ app.post('/api/analyze', async (req, res) => {
             return res.status(401).json({ error: 'userNotFound', message: 'Please Login First' });
         }
 
-        const todayDate = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
         const userRef = db.collection('users').doc(uid);
-        const usageRef = userRef.collection('usage').doc(todayDate);
 
         const userSnap = await userRef.get();
         let isPro = false;
+        let trialsUsed = 0;
         
         if (userSnap.exists) {
             const uData = userSnap.data();
@@ -787,11 +787,16 @@ app.post('/api/analyze', async (req, res) => {
                 const expiry = uData.expiryDate.toDate ? uData.expiryDate.toDate() : new Date(uData.expiryDate);
                 if (new Date() > expiry) isPro = false;
             }
+            
+            if (uData.lastTrialDate !== today) {
+                trialsUsed = 0;
+            } else {
+                trialsUsed = uData.trialsUsed || 0;
+            }
         }
 
         if (!isPro) {
-            const usageSnap = await usageRef.get();
-            if (usageSnap.exists && usageSnap.data().trialsUsed >= 2) {
+            if (trialsUsed >= 2) {
                 return res.status(403).json({ error: 'noCredits', message: 'Free trials exhausted. Please upgrade to Pro.' });
             }
         }
@@ -842,19 +847,23 @@ app.post('/api/analyze', async (req, res) => {
             try {
                 await db.runTransaction(async (transaction) => {
                     const userDoc = await transaction.get(userRef);
-                    const usageDoc = await transaction.get(usageRef);
 
                     if (!userDoc.exists) {
-                        transaction.set(userRef, { isPro: false, status: 'free', createdAt: new Date() }, { merge: true });
-                    } else if (userDoc.data().isPro === undefined) {
-                        transaction.set(userRef, { isPro: false }, { merge: true });
-                    }
-
-                    if (usageDoc.exists) {
-                        const currentTrials = usageDoc.data().trialsUsed || 0;
-                        if (currentTrials < 2) transaction.update(usageRef, { trialsUsed: currentTrials + 1 });
+                        transaction.set(userRef, { 
+                            isPro: false, 
+                            status: 'free', 
+                            createdAt: new Date(),
+                            trialsUsed: 1,
+                            lastTrialDate: today
+                        }, { merge: true });
                     } else {
-                        transaction.set(usageRef, { trialsUsed: 1 });
+                        const uData = userDoc.data();
+                        let currentTrials = (uData.lastTrialDate === today) ? (uData.trialsUsed || 0) : 0;
+                        transaction.set(userRef, {
+                            isPro: uData.isPro === undefined ? false : uData.isPro,
+                            trialsUsed: currentTrials + 1,
+                            lastTrialDate: today
+                        }, { merge: true });
                     }
                 });
             } catch (txError) {

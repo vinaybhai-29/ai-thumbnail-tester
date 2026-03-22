@@ -168,10 +168,12 @@ app.post('/api/check-upload-limit', async (req, res) => {
 // 🚀 4. BULLETPROOF: Analyze (The Main Engine)
 app.post('/api/analyze', async (req, res) => {
     try {
-        const { base64, mimeType, base64_b, mimeType_b } = req.body;
+        const { base64, mimeType, base64_b, mimeType_b, topic, language } = req.body;
         const uid = req.body.uid || req.headers['x-user-id'];
 
-        if (!base64 || !mimeType) return res.status(400).json({ error: 'Missing base64 or mimeType' });
+        const isTitleGen = !!(topic && language);
+
+        if (!isTitleGen && (!base64 || !mimeType)) return res.status(400).json({ error: 'Missing base64 or mimeType' });
         if (!uid) return res.status(401).json({ error: 'userNotFound', message: 'Please Login First' });
 
         const today = getTodayString();
@@ -208,7 +210,14 @@ app.post('/api/analyze', async (req, res) => {
         const isABTest = !!(base64_b && mimeType_b);
         let messages = [];
 
-        if (isABTest) {
+        if (isTitleGen) {
+            messages = [{
+                role: 'user',
+                content: [
+                    { type: 'text', text: `Generate 5 viral YouTube titles for the topic: ${topic} in ${language}. Return ONLY a JSON array of strings.` }
+                ]
+            }];
+        } else if (isABTest) {
             messages = [{
                 role: 'user',
                 content: [

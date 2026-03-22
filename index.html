@@ -1547,6 +1547,7 @@
         async function analyze() {
             if (currentTab === 'title-generator') {
                 const topic = document.getElementById('videoTopic').value.trim();
+                const language = document.getElementById('titleLanguage').value;
                 if (!topic) return alert("📝 Please enter a video topic!");
                 
                 if (!currentUser) {
@@ -1558,16 +1559,67 @@
                 if (!canAnalyze) return;
 
                 btn.disabled = true;
-                btn.innerText = "🚀 Analyzing...";
+                btn.innerText = "🚀 Generating...";
                 loader.classList.add('active');
                 document.getElementById('loaderText').innerText = 'Generating titles...';
+                document.getElementById('errorBox').style.display = 'none';
+                document.getElementById('combinedResult').classList.remove('show');
                 
-                setTimeout(() => {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'x-user-id': currentUser ? currentUser.uid : ''
+                        },
+                        body: JSON.stringify({
+                            topic: topic,
+                            language: language,
+                            uid: currentUser ? currentUser.uid : null
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) {
+                        if (data.error === 'userNotFound') throw new Error('Please Login First to use the tool');
+                        throw new Error(data.error || data.message || 'Generation failed');
+                    }
+
+                    displayTitleResult(data);
+
+                    uploadCount++;
+                    
+                    // INSTANT LIVE UPDATE FOR BADGE
+                    const badge = document.getElementById('trialBadge');
+                    if (badge && userStatus !== 'Pro') {
+                        let remaining = Math.max(0, 2 - uploadCount);
+                        if (remaining > 0) {
+                            badge.innerHTML = `🎁 ${remaining} Free Daily Trial${remaining === 1 ? '' : 's'}`;
+                        } else {
+                            badge.innerHTML = `⚠️ 0 Free Trials Left`;
+                            badge.style.background = "#450a0a";
+                            badge.style.color = "#ef4444";
+                            badge.style.borderColor = "#ef4444";
+                        }
+                    }
+                    
+                    if (currentUser) loadUserCredits();
+
+                } catch (err) {
+                    const errorMsg = err.message;
+                    if (errorMsg.includes('Please Login First')) {
+                        document.getElementById('signInBtn').click();
+                    } else if (errorMsg.includes('No credits') || errorMsg.includes('Free trials')) {
+                        document.getElementById('paywallModal').classList.add('active');
+                    } else {
+                        document.getElementById('errorBox').innerText = "❌ Error: " + errorMsg;
+                        document.getElementById('errorBox').style.display = 'block';
+                    }
+                } finally {
                     btn.disabled = false;
                     btn.innerText = "🚀 Analyze";
                     loader.classList.remove('active');
-                    alert("Backend integration for Title Generator is coming soon!");
-                }, 1500);
+                }
                 
                 return;
             }
@@ -1704,15 +1756,60 @@
             return 'low';
         }
 
+        function displayTitleResult(titles) {
+            const result = document.getElementById('combinedResult');
+            
+            document.querySelector('.score-grid').style.display = 'none';
+            document.getElementById('analysisText').style.display = 'none';
+            document.getElementById('copyBtn').style.display = 'none';
+            
+            const tipsContainer = document.getElementById('tipsContainer');
+            tipsContainer.style.display = 'block';
+            tipsContainer.firstElementChild.innerText = '✨ Generated Titles (Click to copy):';
+            
+            const tipsList = document.getElementById('tipsList');
+            tipsList.innerHTML = '';
+            
+            let titleArray = Array.isArray(titles) ? titles : (titles.titles || []);
+            
+            if (titleArray && titleArray.length > 0) {
+                titleArray.forEach(title => {
+                    const div = document.createElement('div');
+                    div.className = 'suggested-title-item';
+                    div.innerText = title;
+                    div.onclick = () => {
+                        navigator.clipboard.writeText(title);
+                        showToast('✅ Title copied!');
+                    };
+                    tipsList.appendChild(div);
+                });
+            } else {
+                document.getElementById('analysisText').innerText = "Could not parse titles. Please try again.";
+                document.getElementById('analysisText').style.display = 'block';
+            }
+
+            result.classList.add('show');
+        }
+
         function displayCombinedResult(analysis) {
             const result = document.getElementById('combinedResult');
             
+            document.querySelector('.score-grid').style.display = 'grid';
+            document.getElementById('analysisText').style.display = 'block';
+            document.getElementById('copyBtn').style.display = 'block';
+            
+            const tipsContainer = document.getElementById('tipsContainer');
+            tipsContainer.style.display = 'block';
+            tipsContainer.firstElementChild.innerText = '💡 Improvement Tips:';
+
             if(analysis.winner) {
                 document.getElementById('thumbnailScore').innerText = analysis.winner;
+                document.getElementById('thumbnailScore').className = 'score-card-value';
                 document.getElementById('titleScore').innerText = '';
                 document.getElementById('combinedScore').innerText = '';
                 document.getElementById('analysisText').innerText = analysis.explanation;
                 document.getElementById('tipsList').innerHTML = '';
+                tipsContainer.style.display = 'none';
             } else {
                 document.getElementById('thumbnailScore').innerText = analysis.thumbnailScore;
                 document.getElementById('thumbnailScore').className = 'score-card-value ' + getScoreColor(analysis.thumbnailScore);
@@ -1727,17 +1824,128 @@
 
                 const tipsList = document.getElementById('tipsList');
                 tipsList.innerHTML = '';
-                analysis.tips.forEach(tip => {
-                    const div = document.createElement('div');
-                    div.className = 'tip-item';
-                    div.innerText = '• ' + tip;
-                    tipsList.appendChild(div);
-                });
+                if (analysis.tips) {
+                    analysis.tips.forEach(tip => {
+                        const div = document.createElement('div');
+                        div.className = 'tip-item';
+                        div.innerText = '• ' + tip;
+                        tipsList.appendChild(div);
+                    });
+                }
             }
             result.classList.add('show');
         }
 
         function startLoaderAnimation() {
+            const messages = ['Analyzing thumbnail A...', 'Analyzing thumbnail B...', 'Comparing designs...', 'Declaring a winner...'];
+            let currentMessage = 0;
+            const loaderText = document.getElementById('loaderText');
+            
+            const interval = setInterval(() => {
+                currentMessage++;
+                if (currentMessage < messages.length) loaderText.innerText = messages[currentMessage];
+                else clearInterval(interval);
+            }, 875);
+        }
+
+        // --- THE POPUP FIX: AWAIT PROMISE & FORCE HIDE ---
+        async function signInWithGoogle() {
+            try {
+                const googleProvider = new firebase.auth.GoogleAuthProvider();
+                
+                // Wait for popup to finish
+                const result = await auth.signInWithPopup(googleProvider);
+                
+                // IMMMEDIATELY KILL THE MODALS! No Refresh needed!
+                document.getElementById('authModal').classList.remove('active');
+                document.getElementById('warningModal').classList.remove('active');
+                
+                if (result.user) {
+                    await fetch(`${API_BASE_URL}/api/verify-phone-auth`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ uid: result.user.uid, email: result.user.email, displayName: result.user.displayName })
+                    });
+                    
+                    // Reload credits behind the scenes
+                    loadUserCredits();
+                }
+            } catch (err) {
+                console.error('Error starting Google sign in popup:', err);
+            }
+        }
+
+        function closeAuthModal() {
+            document.getElementById('warningModal').classList.add('active');
+        }
+        
+        function closeAndReopenAuth() {
+            document.getElementById('warningModal').classList.remove('active');
+            document.getElementById('authModal').classList.add('active');
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('authModal').classList.contains('active')) {
+                e.preventDefault();
+                closeAuthModal();
+            }
+        });
+
+        function copyAnalysis() {
+            const winner = document.getElementById('thumbnailScore').innerText;
+            const explanation = document.getElementById('analysisText').innerText;
+            const fullText = `A/B Test Result\n\nWinner: ${winner}\n\nExplanation:\n${explanation}`;
+
+            navigator.clipboard.writeText(fullText).then(() => {
+                document.getElementById('copyBtn').innerText = '✅ Copied!';
+                setTimeout(() => document.getElementById('copyBtn').innerText = '📋 Copy Analysis', 2000);
+            });
+        }
+    </script>
+
+    <script>
+        document.getElementById('menuIcon').onclick = function() {
+            document.getElementById('dropdownMenu').classList.toggle('show');
+        };
+
+        document.addEventListener('click', function(event) {
+            const menuIcon = document.getElementById('menuIcon');
+            const dropdownMenu = document.getElementById('dropdownMenu');
+            if (menuIcon && dropdownMenu) {
+                const isClickInsideMenu = menuIcon.contains(event.target);
+                const isClickInsideDropdown = dropdownMenu.contains(event.target);
+                if (!isClickInsideMenu && !isClickInsideDropdown && dropdownMenu.classList.contains('show')) {
+                    dropdownMenu.classList.remove('show');
+                }
+            }
+        });
+
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('active');
+        }
+
+        document.addEventListener('click', function(event) {
+            const modals = ['privacyModal', 'refundModal', 'contactModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (modal && event.target === modal) closeModal(modalId);
+            });
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                ['privacyModal', 'refundModal', 'contactModal'].forEach(modalId => closeModal(modalId));
+            }
+        });
+    </script>
+</body>
+</html> function startLoaderAnimation() {
             const messages = ['Analyzing thumbnail A...', 'Analyzing thumbnail B...', 'Comparing designs...', 'Declaring a winner...'];
             let currentMessage = 0;
             const loaderText = document.getElementById('loaderText');

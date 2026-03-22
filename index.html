@@ -69,10 +69,6 @@
             height: 28px;
         }
         
-        .hamburger-btn:hover {
-            color: #7dd3fc !important;
-        }
-        
         .hamburger-icon {
             width: 100%;
             height: 3px;
@@ -101,11 +97,6 @@
             flex-direction: column;
         }
         
-        .dropdown-menu.active {
-            display: flex;
-            flex-direction: column;
-        }
-        
         .dropdown-item {
             padding: 0.85rem 1.25rem;
             color: #cbd5e1;
@@ -120,23 +111,8 @@
             border-bottom: 1px solid #334155;
         }
         
-        .dropdown-item:last-child {
-            border-bottom: none;
-        }
-        
-        .dropdown-item:hover {
-            background: #0f172a;
-            color: #38bdf8;
-        }
-        
-        .dropdown-item.logout {
-            color: #ef4444;
-        }
-        
-        .dropdown-item.logout:hover {
-            background: #7f1d1d;
-            color: #fca5a5;
-        }
+        .dropdown-item.logout { color: #ef4444; }
+        .dropdown-item.logout:hover { background: #7f1d1d; color: #fca5a5; }
         
         .footer {
             background: #0f172a;
@@ -145,17 +121,6 @@
             text-align: center;
             font-size: 0.8rem;
             color: #9ca3af;
-            letter-spacing: 0.2px;
-        }
-        
-        .footer a {
-            color: #38bdf8;
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-        
-        .footer a:hover {
-            color: #7dd3fc;
         }
         
         .card { 
@@ -171,200 +136,6 @@
         
         h1 { color: #38bdf8; margin-bottom: 0.5rem; }
         
-        .upload-area { 
-            border: 2px dashed #38bdf8; 
-            border-radius: 0.75rem; 
-            padding: 2rem; 
-            margin: 1.5rem 0; 
-            cursor: pointer; 
-            transition: all 0.3s; 
-            background: #0f172a; 
-        }
-        
-        .upload-area:hover { background: #1e293b; border-color: #7dd3fc; }
-        
-        #preview { width: 100%; border-radius: 0.5rem; display: none; margin-top: 1rem; }
-        
-        button { 
-            background: #0ea5e9; 
-            color: white; 
-            border: none; 
-            padding: 0.75rem 1.5rem; 
-            border-radius: 0.5rem; 
-            font-weight: bold; 
-            width: 100%; 
-            cursor: pointer; 
-            font-size: 1rem; 
-            transition: 0.2s; 
-        }
-        
-        button:hover { background: #0284c7; }
-        button:disabled { background: #64748b; cursor: not-allowed; }
-        
-        #result { 
-            margin-top: 1.5rem; 
-            padding: 1rem; 
-            background: #334155; 
-            border-radius: 0.5rem; 
-            display: none; 
-            text-align: left; 
-            border-left: 4px solid #38bdf8; 
-        }
-        
-        .score { 
-            font-size: 2rem; 
-            font-weight: bold; 
-            text-align: center; 
-            margin-bottom: 0.75rem; 
-            padding: 0.5rem; 
-            border-radius: 0.5rem; 
-        }
-        
-        .score.red { color: #ef4444; background: #450a0a; }
-        .score.yellow { color: #facc15; background: #422006; }
-        .score.green { color: #22c55e; background: #052e16; }
-        
-        .error { 
-            color: #ef4444; 
-            background: #450a0a; 
-            padding: 0.75rem; 
-            border-radius: 0.5rem; 
-            margin-top: 1rem; 
-            display: none; 
-            font-size: 0.9rem; 
-        }
-        
-        .tip-item { 
-            padding: 0.5rem 0; 
-            border-bottom: 1px solid #475569; 
-            font-size: 0.95rem; 
-            line-height: 1.5; 
-        }
-        
-        .tip-item:last-child { border-bottom: none; }
-        
-        #copyBtn { 
-            margin-top: 1rem; 
-            background: #334155; 
-            font-size: 0.85rem; 
-            padding: 0.5rem; 
-        }
-        
-        #copyBtn:hover { background: #475569; }
-        
-        /* Advanced Loading Animation */
-        .loader { 
-            display: none; 
-            flex-direction: column;
-            justify-content: center; 
-            align-items: center; 
-            gap: 12px; 
-            margin: 2rem 0; 
-        }
-        
-        .loader.active { display: flex; }
-        
-        .progress-bar-container {
-            width: 100%;
-            height: 8px;
-            background: #0f172a;
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 1rem 0;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #0ea5e9, #38bdf8, #7dd3fc);
-            width: 0%;
-            border-radius: 4px;
-            animation: progressFill 3.5s ease-in-out forwards;
-            box-shadow: 0 0 10px rgba(14, 165, 233, 0.6);
-        }
-        
-        @keyframes progressFill {
-            0% { width: 0%; }
-            100% { width: 100%; }
-        }
-        
-        .loader-text {
-            font-size: 0.95rem;
-            color: #94a3b8;
-            font-weight: 500;
-            min-height: 20px;
-            animation: fadeInOut 3.5s ease-in-out;
-        }
-        
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 0; }
-            50% { opacity: 1; }
-        }
-        
-        .loader-dots {
-            display: flex;
-            gap: 6px;
-            justify-content: center;
-        }
-        
-        .loader span { 
-            width: 10px; 
-            height: 10px; 
-            background: #38bdf8; 
-            border-radius: 50%; 
-            animation: bounce 0.6s infinite alternate; 
-        }
-        
-        .loader span:nth-child(2) { animation-delay: 0.2s; }
-        .loader span:nth-child(3) { animation-delay: 0.4s; }
-        
-        @keyframes bounce { 
-            from { transform: translateY(0); opacity: 0.4; } 
-            to { transform: translateY(-10px); opacity: 1; } 
-        }
-
-        /* Drag & Drop Zone */
-        .drag-drop-zone {
-            border: 3px dashed #38bdf8;
-            border-radius: 1rem;
-            padding: 2.5rem 1.5rem;
-            margin: 1.5rem 0;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: #0f172a;
-            text-align: center;
-            position: relative;
-            min-height: 200px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-
-        .drag-drop-zone.dragover {
-            background: #1e293b;
-            border-color: #7dd3fc;
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
-            transform: scale(1.02);
-        }
-
-        .drag-drop-icon {
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .drag-drop-text {
-            color: #38bdf8;
-            font-weight: 600;
-            font-size: 1rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .drag-drop-subtext {
-            color: #94a3b8;
-            font-size: 0.85rem;
-        }
-
         .free-trials-badge {
             background: linear-gradient(135deg, #1e293b, #0f172a);
             border: 1px solid #38bdf8;
@@ -376,8 +147,6 @@
             display: inline-block;
             margin-bottom: 1.5rem;
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
-            letter-spacing: 0.5px;
-            transition: all 0.3s ease;
         }
 
         .upload-container {
@@ -386,419 +155,128 @@
             margin: 1.5rem 0;
         }
 
-        .drop-zone-wrapper {
-            width: 50%;
+        .drop-zone-wrapper { width: 50%; display: flex; flex-direction: column; }
+
+        .drag-drop-zone {
+            border: 3px dashed #38bdf8;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #0f172a;
+            text-align: center;
+            min-height: 180px;
             display: flex;
             flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
         }
+
+        .drag-drop-zone.dragover {
+            background: #1e293b;
+            border-color: #7dd3fc;
+            transform: scale(1.02);
+        }
+
+        .drag-drop-icon { font-size: 2rem; margin-bottom: 0.5rem; color: #38bdf8; }
+        .drag-drop-text { color: #cbd5e1; font-weight: 500; font-size: 0.85rem; }
 
         #previewA, #previewB {
             max-width: 100%;
             max-height: 250px;
             object-fit: contain;
-            width: 100%;
             border-radius: 0.75rem;
             margin-top: 1rem;
             display: none;
         }
 
-        /* Title Section */
-        .title-section {
-            background: #334155;
-            padding: 1.5rem;
-            border-radius: 1rem;
-            margin: 1.5rem 0;
-            border: 1px solid #475569;
+        button { 
+            background: #0ea5e9; color: white; border: none; padding: 0.75rem 1.5rem; 
+            border-radius: 0.5rem; font-weight: bold; width: 100%; cursor: pointer; 
+            font-size: 1rem; transition: 0.2s; 
         }
-
-        .section-title {
-            color: #7dd3fc;
-            font-weight: 600;
-            font-size: 0.95rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        button:hover { background: #0284c7; }
+        button:disabled { background: #64748b; cursor: not-allowed; }
+        
+        .error { 
+            color: #ef4444; background: #450a0a; padding: 0.75rem; 
+            border-radius: 0.5rem; margin-top: 1rem; display: none; font-size: 0.9rem; 
         }
-
-        .title-input {
-            width: 100%;
-            padding: 0.75rem;
-            background: #1e293b;
-            border: 1px solid #475569;
-            border-radius: 0.5rem;
-            color: #f8fafc;
-            font-size: 0.95rem;
-            font-family: inherit;
-            transition: all 0.2s ease;
-            margin-bottom: 0.75rem;
+        
+        /* Loading Animation */
+        .loader { 
+            display: none; flex-direction: column; justify-content: center; 
+            align-items: center; gap: 12px; margin: 2rem 0; 
         }
-
-        .title-input:focus {
-            outline: none;
-            border-color: #38bdf8;
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
-            background: #0f172a;
+        .loader.active { display: flex; }
+        
+        .loader span { 
+            width: 10px; height: 10px; background: #38bdf8; 
+            border-radius: 50%; animation: bounce 0.6s infinite alternate; 
         }
-
-        .title-input::placeholder {
-            color: #64748b;
-        }
-
-        .generate-titles-btn {
-            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-            padding: 0.8rem;
-            font-weight: 600;
-        }
-
-        .generate-titles-btn:hover {
-            background: linear-gradient(135deg, #7dd3fc, #38bdf8);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(56, 189, 248, 0.3);
-        }
-
-        .generate-titles-btn:disabled {
-            background: #64748b;
-            transform: none;
-        }
-
-        /* Suggested Titles List */
-        .suggested-titles {
-            display: none;
-            margin-top: 1rem;
-        }
-
-        .suggested-titles.show {
-            display: block;
-        }
-
-        .suggested-title-item {
-            background: #1e293b;
-            border: 1px solid #475569;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            margin-bottom: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 0.9rem;
-            color: #cbd5e1;
-            text-align: left;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .suggested-title-item:hover {
-            background: #334155;
-            border-color: #38bdf8;
-            color: #38bdf8;
-            padding-left: 1rem;
-        }
-
-        /* Toast Notification */
-        .toast {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #1e293b;
-            color: #f8fafc;
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            border-left: 4px solid #38bdf8;
-            z-index: 2000;
-            max-width: 90%;
-            animation: slideUpToast 0.3s ease-out forwards;
-            font-size: 0.9rem;
-        }
-
-        @keyframes slideUpToast {
-            to {
-                transform: translateX(-50%) translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .toast.show {
-            display: block;
+        .loader span:nth-child(2) { animation-delay: 0.2s; }
+        .loader span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes bounce { 
+            from { transform: translateY(0); opacity: 0.4; } 
+            to { transform: translateY(-10px); opacity: 1; } 
         }
 
         /* Combined Score Display */
         .combined-score-section {
             background: linear-gradient(135deg, #334155, #1e293b);
-            padding: 1.5rem;
-            border-radius: 1rem;
-            margin-top: 1.5rem;
-            border: 1px solid #475569;
-            display: none;
+            padding: 1.5rem; border-radius: 1rem; margin-top: 1.5rem; 
+            border: 1px solid #475569; display: none;
         }
-
-        .combined-score-section.show {
-            display: block;
-        }
-
-        .score-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .score-card {
-            background: #0f172a;
-            padding: 1rem;
-            border-radius: 0.75rem;
-            text-align: center;
-            border: 1px solid #334155;
-        }
-
-        .score-card-label {
-            font-size: 0.75rem;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-        }
-
-        .score-card-value {
-            font-size: 1.75rem;
-            font-weight: bold;
-            color: #38bdf8;
-        }
-
-        .score-card-value.low {
-            color: #ef4444;
-        }
-
-        .score-card-value.medium {
-            color: #facc15;
-        }
-
-        .score-card-value.high {
-            color: #22c55e;
-        }
-
+        .combined-score-section.show { display: block; }
+        
         .analysis-text {
-            background: #0f172a;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-top: 1rem;
-            border-left: 4px solid #38bdf8;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            color: #cbd5e1;
+            background: #0f172a; padding: 1rem; border-radius: 0.5rem; 
+            margin-top: 1rem; border-left: 4px solid #38bdf8; font-size: 0.9rem; 
         }
         
         /* Modal Styles */
         .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0, 0, 0, 0.7); z-index: 1000; justify-content: center; align-items: center;
         }
-        
         .modal-overlay.active { display: flex; }
         
         .modal {
-            background: #1e293b;
-            padding: 2.5rem 2.25rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-            max-width: 420px;
-            width: 90%;
-            text-align: center;
-            border: 1px solid #334155;
+            background: #1e293b; padding: 2.5rem 2.25rem; border-radius: 1.5rem; 
+            max-width: 420px; width: 90%; text-align: center; border: 1px solid #334155; 
             animation: slideUp 0.3s ease-out;
-            display: flex;
-            flex-direction: column;
         }
         
-        @keyframes slideUp {
-            from { transform: translateY(30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        .modal h2 { color: #38bdf8; margin-bottom: 0.75rem; margin-top: 0; font-size: 1.5rem; }
+        .modal h2 { color: #38bdf8; margin-bottom: 0.75rem; margin-top: 0; }
         .modal p { color: #cbd5e1; font-size: 0.95rem; line-height: 1.6; margin: 0.75rem 0; }
         
         .btn-google {
-            background: white !important;
-            color: #1f2937 !important;
-            border: 2px solid #e5e7eb !important;
-            font-weight: 600 !important;
-            padding: 0.95rem 2rem !important;
-            font-size: 1rem !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 0.75rem !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-            transition: all 0.3s ease !important;
+            background: white !important; color: #1f2937 !important; 
+            border: 2px solid #e5e7eb !important; font-weight: 600 !important; 
+            padding: 0.95rem 2rem !important; display: flex !important; 
+            align-items: center !important; justify-content: center !important; gap: 0.75rem !important; 
+            transition: all 0.3s ease !important; width: 100%;
         }
-        
-        .btn-google:hover {
-            background: #f9fafb !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-            border-color: #d1d5db !important;
-        }
-        
-        .btn-google:disabled {
-            background: #f3f4f6 !important;
-            color: #9ca3af !important;
-        }
-        
-        .modal-buttons {
-            display: flex;
-            gap: 0.75rem;
-            margin-top: 1.5rem;
-        }
-        
-        .modal-buttons button {
-            flex: 1;
-            font-size: 0.9rem;
-            padding: 0.65rem;
-        }
+        .btn-google:hover { background: #f9fafb !important; }
+        .btn-google:disabled { background: #f3f4f6 !important; color: #9ca3af !important; }
         
         .btn-primary {
             background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
-            font-weight: 600 !important;
-            padding: 0.85rem 2rem !important;
-            font-size: 1rem !important;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3) !important;
-            transition: all 0.3s ease !important;
+            font-weight: 600 !important; padding: 0.85rem 2rem !important;
         }
-        
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
-            transform: translateY(-2px) !important;
-        }
-        
-        .btn-primary:disabled {
-            background: #64748b !important;
-            box-shadow: none !important;
-        }
+        .btn-primary:disabled { background: #64748b !important; }
 
-        .btn-credits {
-            background: linear-gradient(135deg, #ec4899, #db2777) !important;
-            color: white !important;
-            border: none !important;
-            padding: 0.6rem 1.2rem !important;
-            font-size: 0.85rem !important;
-            font-weight: 700 !important;
-            border-radius: 0.5rem !important;
-            cursor: pointer !important;
-            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4) !important;
-            transition: all 0.3s ease !important;
-            margin-right: 1rem !important;
-            animation: pulse 2s infinite !important;
-        }
-
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); }
-            50% { box-shadow: 0 6px 25px rgba(236, 72, 153, 0.7); }
-        }
-
-        .btn-credits:hover {
-            background: linear-gradient(135deg, #db2777, #be185d) !important;
-            box-shadow: 0 8px 30px rgba(236, 72, 153, 0.6) !important;
-            transform: translateY(-2px) !important;
-        }
-        
-        .btn-secondary {
-            background: #475569 !important;
-        }
-        
-        .btn-secondary:hover {
-            background: #64748b !important;
-        }
-
-        .btn-logout {
-            background: #ef4444 !important;
-            font-weight: 600 !important;
-        }
-
-        .btn-logout:hover {
-            background: #dc2626 !important;
-        }
+        .btn-secondary { background: #475569 !important; }
+        .btn-logout { background: #ef4444 !important; font-weight: 600 !important; }
 
         .pro-badge {
-            background: linear-gradient(135deg, #22c55e, #16a34a);
-            color: white;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            font-size: 0.85rem;
-            font-weight: 700;
-            border-radius: 0.5rem;
-            cursor: default;
-            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
-            margin-right: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            pointer-events: none;
-        }
-
-        .pro-expiry {
-            font-size: 0.75rem;
-            opacity: 0.9;
-            margin-top: 0.25rem;
-        }
-        
-        .success-message {
-            display: none;
-            background: #052e16;
-            color: #22c55e;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin: 1rem 0;
-            border: 1px solid #22c55e;
-        }
-        
-        .info-text {
-            font-size: 0.8rem;
-            color: #6b7280;
-            margin-top: 1.25rem;
-            line-height: 1.5;
-            font-weight: 500;
-            letter-spacing: 0.3px;
-        }
-        
-        .modal-divider {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
-            margin: 1.5rem 0;
-        }
-        
-        .modal-footer {
-            text-align: center;
-            padding-top: 1rem;
-            font-size: 0.8rem;
-            color: #9ca3af;
-            letter-spacing: 0.2px;
-        }
-        
-        .modal-footer a {
-            color: #38bdf8;
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-        
-        .modal-footer a:hover {
-            color: #7dd3fc;
+            background: linear-gradient(135deg, #22c55e, #16a34a); color: white; 
+            padding: 0.6rem 1.2rem; font-size: 0.85rem; font-weight: 700; 
+            border-radius: 0.5rem; cursor: default; margin-right: 1rem;
         }
     </style>
 </head>
@@ -806,935 +284,247 @@
     <div class="header">
         <div class="header-brand">🎯 Thumbnail Tester</div>
         <div class="header-auth">
-            <button id="buyCreditsBtn" class="btn-credits" onclick="openBuyCreditsModal()" style="display: none;">🚀 Upgrade to Pro</button>
+            <div id="proBadge" class="pro-badge" style="display: none;">✅ Pro Member</div>
             <button id="menuIcon" class="hamburger-btn" style="display: none;">
-                <span class="hamburger-icon"></span>
-                <span class="hamburger-icon"></span>
-                <span class="hamburger-icon"></span>
+                <span class="hamburger-icon"></span><span class="hamburger-icon"></span><span class="hamburger-icon"></span>
             </button>
             <div class="dropdown-menu" id="dropdownMenu">
-                <button class="dropdown-item" onclick="handleDashboard()">📊 Dashboard</button>
-                <button class="dropdown-item" onclick="handleMyCredits()">⭐ My Credits</button>
                 <button class="dropdown-item logout" onclick="handleSignOutClick()">🚪 Sign Out</button>
             </div>
-            <button id="signInBtn" class="btn-primary" onclick="document.getElementById('authModal').classList.add('active')" style="padding: 0.5rem 1.25rem; font-size: 0.9rem; width: auto; margin: 0;" disabled>🔐 Sign In</button>
+            <button id="signInBtn" class="btn-primary" onclick="document.getElementById('authModal').classList.add('active')" style="display: none; padding: 0.5rem 1.25rem; font-size: 0.9rem; width: auto; margin: 0;">🔐 Sign In</button>
         </div>
     </div>
     
     <div class="main-container">
-    <div class="card">
-        <h1>✨ Vinay AI Studio</h1>
-        <p style="color: #94a3b8; margin-bottom: 1.5rem;">Optimize Your YouTube Content</p>
-
-        <div style="text-align: center; width: 100%;">
-            <div class="free-trials-badge" id="trialBadge">🎁 2 Free Daily Trials</div>
-        </div>
-
-        <div class="upload-container">
-            <div class="drop-zone-wrapper">
-                <div class="section-title">🖼️ Thumbnail A (Required)</div>
-                <div class="drag-drop-zone" id="dragDropZoneA">
-                    <div class="drag-drop-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+        <div class="card">
+            <h1>✨ Vinay AI Studio</h1>
+            <div style="text-align: center; width: 100%;">
+                <div class="free-trials-badge" id="trialBadge">🎁 2 Free Daily Trials</div>
+            </div>
+            <div class="upload-container">
+                <div class="drop-zone-wrapper">
+                    <div class="drag-drop-zone" id="dragDropZoneA">
+                        <div class="drag-drop-icon">📸</div>
+                        <div class="drag-drop-text">Drag & Drop A<br>or click</div>
+                        <input type="file" id="fileInputA" hidden accept="image/*">
+                        <img id="previewA">
                     </div>
-                    <div class="drag-drop-text">Drag & Drop Thumbnail A</div>
-                    <div class="drag-drop-subtext">or click to browse</div>
-                    <input type="file" id="fileInputA" hidden accept="image/*">
-                    <img id="previewA">
                 </div>
-            </div>
-            <div class="drop-zone-wrapper">
-                <div class="section-title">🖼️ Thumbnail B (Optional)</div>
-                <div class="drag-drop-zone" id="dragDropZoneB">
-                    <div class="drag-drop-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                <div class="drop-zone-wrapper">
+                    <div class="drag-drop-zone" id="dragDropZoneB">
+                        <div class="drag-drop-icon">📸</div>
+                        <div class="drag-drop-text">Drag & Drop B<br>or click</div>
+                        <input type="file" id="fileInputB" hidden accept="image/*">
+                        <img id="previewB">
                     </div>
-                    <div class="drag-drop-text">Drag & Drop Thumbnail B</div>
-                    <div class="drag-drop-subtext">or click to browse</div>
-                    <input type="file" id="fileInputB" hidden accept="image/*">
-                    <img id="previewB">
                 </div>
             </div>
-        </div>
-
-        <button id="btn" onclick="analyze()">🚀 Analyze</button>
-
-        <div class="loader" id="loader">
-            <div class="progress-bar-container">
-                <div class="progress-bar"></div>
+            <button id="btn" onclick="analyze()">🚀 Analyze</button>
+            <div class="loader" id="loader">
+                <div class="loader-dots"><span></span><span></span><span></span></div>
+                <div style="color: #94a3b8; font-size: 0.9rem; margin-top: 1rem;">AI is thinking...</div>
             </div>
-            <div class="loader-text" id="loaderText">Analyzing colors...</div>
-            <div class="loader-dots">
-                <span></span><span></span><span></span>
+            <div id="errorBox" class="error"></div>
+            <div id="combinedResult" class="combined-score-section">
+                <h3>Analysis Details</h3>
+                <div class="analysis-text" id="analysisText"></div>
             </div>
-        </div>
-
-        <div id="errorBox" class="error"></div>
-
-        <div id="combinedResult" class="combined-score-section">
-            <div class="score-grid">
-                <div class="score-card">
-                    <div class="score-card-label">Thumbnail</div>
-                    <div class="score-card-value" id="thumbnailScore">0</div>
-                </div>
-                <div class="score-card">
-                    <div class="score-card-label">Title</div>
-                    <div class="score-card-value" id="titleScore">0</div>
-                </div>
-                <div class="score-card">
-                    <div class="score-card-label">Combined</div>
-                    <div class="score-card-value" id="combinedScore">0</div>
-                </div>
-            </div>
-
-            <div class="analysis-text" id="analysisText"></div>
-
-            <div id="tipsContainer">
-                <div style="color: #7dd3fc; font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9rem;">💡 Improvement Tips:</div>
-                <div id="tipsList"></div>
-            </div>
-
-            <button id="copyBtn" onclick="copyAnalysis()">📋 Copy Analysis</button>
-        </div>
-        </div>
-    </div>
-
-    <div id="toast" class="toast"></div>
-
-    <div class="footer">
-        <div style="margin-bottom: 0.75rem;">Made with ❤️ by Vinay AI Studio</div>
-        <div style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; font-size: 0.85rem;">
-            <button onclick="openModal('privacyModal')" style="background: none; border: none; color: #38bdf8; cursor: pointer; text-decoration: underline; padding: 0; font-family: inherit;">Privacy Policy</button>
-            <button onclick="openModal('refundModal')" style="background: none; border: none; color: #38bdf8; cursor: pointer; text-decoration: underline; padding: 0; font-family: inherit;">Refund Policy</button>
-            <button onclick="openModal('contactModal')" style="background: none; border: none; color: #38bdf8; cursor: pointer; text-decoration: underline; padding: 0; font-family: inherit;">Contact Us</button>
         </div>
     </div>
 
     <div class="modal-overlay" id="warningModal">
         <div class="modal">
-            <h2>⚠️ Sign In Required</h2>
-            <p style="color: #fbbf24; margin: 1.5rem 0;">You must sign in with your Google account to see your thumbnail analysis.</p>
-            <p>This helps us provide you with personalized insights and 2 FREE tests daily!</p>
+            <h2>⚠️ Action Required</h2>
+            <p style="color: #fbbf24; margin: 1.5rem 0;">A tiny connection issue happened. Please sign in again to continue analyzing your thumbnails.</p>
+            <p>You still have your FREE tests available!</p>
             <div class="modal-buttons" style="margin-top: 2rem;">
-                <button id="warningOkBtn" class="btn-primary" onclick="closeAndReopenAuth()">OK, Sign In</button>
+                <button class="btn-primary" style="width: 100%;" onclick="closeWarningAndOpenAuth()">OK, Sign In</button>
             </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="authModal">
         <div class="modal">
-            <h2>🎉 Your Report is Ready!</h2>
+            <h2>🎉 Sign In with Google</h2>
             <p>Sign in to unlock your thumbnail analysis and get <strong>2 FREE tests daily!</strong></p>
-            
-            <div style="margin: 1.5rem 0;" id="googleSignInSection">
-                <button id="googleSignInBtn" class="btn-google" style="width: 100%;" onclick="signInWithGoogle()" disabled>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                    </svg>
-                    Continue with Google
-                </button>
+            <div style="margin: 1.5rem 0;">
+                <button class="btn-google" onclick="signInWithGoogle()">Continue with Google</button>
             </div>
-
-            <p class="info-text">100% Secure & Privacy Focused</p>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="signOutConfirmModal">
-        <div class="modal">
-            <h2>⚠️ Sign Out?</h2>
-            <p style="margin: 1.5rem 0;">Are you sure you want to sign out?</p>
-            
-            <div style="background: #0f172a; padding: 1rem; border-radius: 0.5rem; margin: 1.5rem 0; word-break: break-all;">
-                <p style="margin: 0; font-size: 0.85rem; color: #94a3b8;">Logged in as:</p>
-                <p style="margin: 0.5rem 0 0 0; color: #38bdf8; font-weight: 600;" id="userEmailDisplay">user@example.com</p>
-            </div>
-            
-            <div class="modal-buttons">
-                <button id="cancelSignOutBtn" class="btn-secondary" onclick="cancelSignOut()" style="flex: 1;">Cancel</button>
-                <button id="confirmSignOutBtn" class="btn-logout" onclick="confirmSignOut()" style="flex: 1;">Yes, Sign Out</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="paywallModal">
-        <div class="modal">
-            <h2>🚀 Unlock Pro & Continue</h2>
-            <p style="margin: 1.5rem 0; color: #cbd5e1;">You've used your 2 free analyses. Upgrade to <strong>Pro</strong> for unlimited access for the next 30 days!</p>
-            
-            <div style="background: linear-gradient(135deg, #334155, #1e293b); padding: 1.5rem; border-radius: 0.75rem; margin: 1.5rem 0; border: 2px solid #10b981;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <div>
-                        <div style="font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Pro Member Gets</div>
-                        <div style="font-size: 1.25rem; font-weight: 700; color: #10b981;">✅ Unlimited for 30 Days</div>
-                    </div>
-                    <div style="font-size: 2.5rem;">✨</div>
-                </div>
-                <div style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6;">
-                    🎯 Unlimited Thumbnail Analysis<br>
-                    🤖 AI Title Generator<br>
-                    📊 Combined Scores & Tips<br>
-                    ⏰ Auto-expires after 30 days
-                </div>
-            </div>
-
-            <div style="text-align: center; margin-bottom: 1.5rem;">
-                <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0.5rem;">30-Day Pro Subscription</div>
-                <div style="font-size: 2.5rem; font-weight: 700; color: #10b981;">₹49</div>
-            </div>
-            
-            <div class="modal-buttons">
-                <button id="closePaywallBtn" class="btn-secondary" onclick="closePaywallModal()" style="flex: 1;">Maybe Later</button>
-                <button id="upgradePaywallBtn" class="btn-primary" onclick="initRazorpayCheckout('₹49', 1, 'paywall')" style="flex: 1; background: linear-gradient(135deg, #10b981, #059669) !important;">🚀 Upgrade to Pro</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="privacyModal">
-        <div class="modal">
-            <h2>🔒 Privacy Policy</h2>
-            <p style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.7; text-align: left; margin: 1.5rem 0;">
-                <strong>Your Privacy Matters:</strong><br>
-                We only store your email for login and payment history. We do not share, sell, or use your data for any other purpose. Your thumbnail uploads are analyzed on our secure servers and permanently deleted after processing.
-            </p>
-            <div class="modal-buttons" style="margin-top: 2rem;">
-                <button class="btn-primary" onclick="closeModal('privacyModal')" style="flex: 1;">✓ Got It</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="refundModal">
-        <div class="modal">
-            <h2>💰 Refund Policy</h2>
-            <p style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.7; text-align: left; margin: 1.5rem 0;">
-                <strong>No refunds once credits are used.</strong><br>
-                For issues, contact our support team at <strong>0vinaychoudhry@gmail.com</strong> and we'll help resolve your concern within 24 hours.
-            </p>
-            <div class="modal-buttons" style="margin-top: 2rem;">
-                <button class="btn-primary" onclick="closeModal('refundModal')" style="flex: 1;">✓ Understood</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="contactModal">
-        <div class="modal">
-            <h2>📧 Contact Us</h2>
-            <div style="background: #0f172a; padding: 1.5rem; border-radius: 0.75rem; margin: 1.5rem 0; border: 1px solid #334155;">
-                <p style="color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 0.75rem 0;">Support Email:</p>
-                <p style="color: #38bdf8; font-weight: 600; font-size: 1rem; margin: 0;">0vinaychoudhry@gmail.com</p>
-                <p style="color: #cbd5e1; font-size: 0.9rem; margin: 1rem 0 0 0;">We respond to all inquiries within <strong>24 hours</strong>. Get help with payments, features, or any other questions.</p>
-            </div>
-            <div class="modal-buttons" style="margin-top: 2rem;">
-                <button class="btn-primary" onclick="closeModal('contactModal')" style="flex: 1;">✓ Close</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="buyCreditsModal">
-        <div class="modal">
-            <h2>🚀 Upgrade to Pro</h2>
-            <p style="margin: 1.5rem 0; color: #cbd5e1;">Get unlimited thumbnail analysis and AI-powered suggestions for 30 days</p>
-            
-            <div style="background: linear-gradient(135deg, #334155, #1e293b); padding: 1.5rem; border-radius: 0.75rem; margin: 1.5rem 0; border: 2px solid #10b981;">
-                <div style="text-align: center; margin-bottom: 1rem;">
-                    <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 1rem; letter-spacing: 1px; text-transform: uppercase;">30-Day Subscription</div>
-                    <div style="font-size: 3rem; font-weight: 700; color: #10b981;">₹49</div>
-                    <div style="color: #94a3b8; font-size: 0.9rem; margin-top: 0.5rem;">Then ₹0 until expiry • Auto renews at ₹49</div>
-                </div>
-                <div style="border-top: 1px solid #475569; border-bottom: 1px solid #475569; padding: 1rem 0; margin: 1rem 0; color: #cbd5e1; font-size: 0.9rem; line-height: 1.8;">
-                    ✅ Unlimited Thumbnail Analysis<br>
-                    ✅ AI Title Generator<br>
-                    ✅ Combined Clickability Scores<br>
-                    ✅ 5 Improvement Tips<br>
-                    ✅ Valid for 30 Days
-                </div>
-            </div>
-            
-            <div class="modal-buttons">
-                <button id="closeBuyCreditsBtn" class="btn-secondary" onclick="closeBuyCreditsModal()" style="flex: 1;">Not Now</button>
-                <button id="buyCreditsPayBtn" class="btn-primary" onclick="initRazorpayCheckout('₹49', 1, 'header')" style="flex: 1; background: linear-gradient(135deg, #10b981, #059669) !important;">🚀 Upgrade Now</button>
-            </div>
-
-            <p class="modal-footer">🔒 Secure payment powered by Razorpay • Cancel anytime</p>
         </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <script>
         var API_BASE_URL = window.location.origin;
-        var app = null, auth = null, db = null;
-        var pendingResult = null;
-        var currentUser = null;
-        var userCredits = null;
-        var userStatus = 'free';
+        var app, auth, currentUser;
         var uploadCount = 0;
-
-        var fileInputA = document.getElementById('fileInputA');
-        var fileInputB = document.getElementById('fileInputB');
         var btn = document.getElementById('btn');
         var loader = document.getElementById('loader');
-        var authModal = document.getElementById('authModal');
-        var buyCreditsBtn = document.getElementById('buyCreditsBtn');
 
-        // Initialize Firebase Asynchronously
         fetch(`${API_BASE_URL}/api/get-firebase-config`)
             .then(res => res.json())
             .then(config => {
                 app = firebase.initializeApp(config);
                 auth = firebase.auth();
-                db = firebase.firestore();
-                
-                // Enable login buttons now that Firebase is ready
-                const signInBtn = document.getElementById('signInBtn');
-                const googleSignInBtn = document.getElementById('googleSignInBtn');
-                if (signInBtn) signInBtn.disabled = false;
-                if (googleSignInBtn) googleSignInBtn.disabled = false;
-                if (signInBtn) signInBtn.innerText = '🔐 Sign In';
-
-                // Check if user is already logged in
-                auth.onAuthStateChanged(async (user) => {
-                    try {
-                        currentUser = user;
-                        updateAuthUI();
-                        if (user) {
-                            console.log('User logged in:', user.uid);
-                            
-                            // FORCE HIDE ANY MODAL ON LOAD
-                            const authModalEl = document.getElementById('authModal');
-                            if (authModalEl) authModalEl.classList.remove('active');
-                            
-                            const warningModalEl = document.getElementById('warningModal');
-                            if (warningModalEl) warningModalEl.classList.remove('active');
-                            
-                            await loadUserCredits();
-                        }
-                    } catch (err) {
-                        console.error('Error handling auth state change:', err);
-                    }
+                auth.onAuthStateChanged(user => {
+                    currentUser = user;
+                    updateAuthUI();
+                    if (user) loadUserCredits();
+                    else document.getElementById('signInBtn').style.display = 'block';
                 });
             })
             .catch(err => console.error("Firebase init failed:", err));
 
-        // Update UI based on auth state
         function updateAuthUI() {
-            try {
-                var menuIcon = document.getElementById('menuIcon');
-                var signInBtn = document.getElementById('signInBtn');
-                var dropdownMenu = document.getElementById('dropdownMenu');
-                
-                if (currentUser) {
-                    if (menuIcon) menuIcon.style.display = 'flex';
-                    if (signInBtn) signInBtn.style.display = 'none';
-                    if (buyCreditsBtn) buyCreditsBtn.style.display = 'block';
-                    if (dropdownMenu) dropdownMenu.classList.remove('show');
-                } else {
-                    if (menuIcon) menuIcon.style.display = 'none';
-                    if (signInBtn) signInBtn.style.display = 'block';
-                    if (buyCreditsBtn) buyCreditsBtn.style.display = 'none';
-                    if (dropdownMenu) dropdownMenu.classList.remove('show');
-                }
-            } catch (e) {
-                console.error("UI update error:", e);
+            var menuIcon = document.getElementById('menuIcon');
+            var signInBtn = document.getElementById('signInBtn');
+            var dropdownMenu = document.getElementById('dropdownMenu');
+            if (currentUser) {
+                menuIcon.style.display = 'flex';
+                signInBtn.style.display = 'none';
+                dropdownMenu.classList.remove('show');
+            } else {
+                menuIcon.style.display = 'none';
+                signInBtn.style.display = 'block';
+                dropdownMenu.classList.remove('show');
             }
-        }
-        
-        // Toggle Dropdown Menu
-        function toggleDropdownMenu() {
-            const dropdownMenu = document.getElementById('dropdownMenu');
-            dropdownMenu.classList.toggle('show');
-        }
-        
-        // Close Dropdown Menu
-        function closeDropdownMenu() {
-            const dropdownMenu = document.getElementById('dropdownMenu');
-            dropdownMenu.classList.remove('show');
-        }
-        
-        function handleDashboard() {
-            alert('Dashboard coming soon!');
-            closeDropdownMenu();
-        }
-        
-        function handleMyCredits() {
-            alert('My Credits coming soon!');
-            closeDropdownMenu();
         }
         
         function handleSignOutClick() {
-            if (currentUser) {
-                document.getElementById('userEmailDisplay').innerText = currentUser.email || 'user@example.com';
-            }
-            document.getElementById('signOutConfirmModal').classList.add('active');
-            closeDropdownMenu();
-        }
-        
-        function cancelSignOut() {
-            document.getElementById('signOutConfirmModal').classList.remove('active');
-        }
-        
-        function confirmSignOut() {
             auth.signOut().then(() => {
-                currentUser = null;
-                updateAuthUI();
-                document.getElementById('signOutConfirmModal').classList.remove('active');
-                
-                // Reset Badge on Signout
-                const badge = document.getElementById('trialBadge');
-                if(badge) {
-                    badge.innerHTML = `🎁 2 Free Daily Trials`;
-                    badge.style.background = "";
-                    badge.style.color = "";
-                    badge.style.borderColor = "";
-                }
-            }).catch((err) => {
-                console.error('Error signing out:', err);
+                location.reload(); 
             });
         }
         
-        // Load User Credits and Limit Info
         async function loadUserCredits() {
             if (!currentUser) return;
-
-            try {
-                // ADDED cache: 'no-store' TO FIX BROWSER CACHING OLD DATA
-                const response = await fetch(`${API_BASE_URL}/api/get-user-credits`, {
-                    method: 'POST',
-                    cache: 'no-store',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'x-user-id': currentUser.uid
-                    },
-                    body: JSON.stringify({ uid: currentUser.uid })
-                });
-
-                const data = await response.json();
-                userStatus = data.status || 'free';
-                uploadCount = data.uploadCount || 0;
-
-                updateBadgeUI(data);
-                updateHeaderUI(data);
-            } catch (err) {
-                console.error('Error loading credits:', err);
-            }
+            const res = await fetch(`${API_BASE_URL}/api/get-user-credits`, {
+                method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid }
+            });
+            const data = await res.json();
+            if (data && !data.error) updateBadgeUI(data);
         }
 
         function updateBadgeUI(data) {
             const badge = document.getElementById('trialBadge');
-            if (badge && data) {
-                if (data.status === 'Pro') {
-                    badge.innerHTML = "✨ Pro Member: Unlimited Analysis";
-                    badge.style.background = "linear-gradient(45deg, #FFD700, #FFA500)";
-                    badge.style.color = "#000";
-                    badge.style.borderColor = "#FFD700";
-                } else {
-                    const remaining = data.freeTrialsRemaining !== undefined ? data.freeTrialsRemaining : Math.max(0, 2 - data.uploadCount);
-                    
-                    if (remaining > 0) {
-                        badge.innerHTML = `🎁 ${remaining} Free Daily Trial${remaining === 1 ? '' : 's'}`;
-                        badge.style.background = ""; 
-                        badge.style.color = "";
-                        badge.style.borderColor = "";
-                    } else {
-                        badge.innerHTML = `⚠️ 0 Free Trials Left`;
-                        badge.style.background = "#450a0a";
-                        badge.style.color = "#ef4444";
-                        badge.style.borderColor = "#ef4444";
-                    }
-                }
-            }
-        }
-
-        // Update Header UI Based on Pro Status
-        function updateHeaderUI(creditsData) {
-            if (creditsData.status === 'Pro' && creditsData.daysRemaining > 0) {
-                buyCreditsBtn.style.display = 'none';
-                
-                let proBadge = document.getElementById('proBadge');
-                if (!proBadge) {
-                    proBadge = document.createElement('div');
-                    proBadge.id = 'proBadge';
-                    proBadge.className = 'pro-badge';
-                    const headerAuth = document.querySelector('.header-auth');
-                    headerAuth.insertBefore(proBadge, buyCreditsBtn);
-                }
-                
-                proBadge.innerHTML = `✅ Pro Member<div class="pro-expiry">Ends in ${creditsData.daysRemaining} day${creditsData.daysRemaining !== 1 ? 's' : ''}</div>`;
-                proBadge.style.display = 'flex';
+            const proBadge = document.getElementById('proBadge');
+            if (data.status === 'Pro') {
+                badge.innerHTML = "✨ Pro: Unlimited Access";
+                badge.style.background = "#052e16"; badge.style.color = "#22c55e"; badge.style.borderColor = "#22c55e";
+                proBadge.style.display = 'block';
             } else {
-                const proBadge = document.getElementById('proBadge');
-                if (proBadge) proBadge.style.display = 'none';
-                buyCreditsBtn.style.display = 'block';
-            }
-        }
-
-        // Check Upload Limit Before Analysis
-        async function checkUploadLimitBeforeAnalysis() {
-            if (!currentUser) {
-                alert('Please login first to analyze thumbnails!');
-                return false;
-            }
-
-            try {
-                // ADDED cache: 'no-store'
-                const response = await fetch(`${API_BASE_URL}/api/check-upload-limit`, {
-                    method: 'POST',
-                    cache: 'no-store',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'x-user-id': currentUser.uid
-                    },
-                    body: JSON.stringify({ uid: currentUser.uid })
-                });
-
-                const data = await response.json();
-
-                if (!data.canUpload) {
-                    document.getElementById('paywallModal').classList.add('active');
-                    return false;
-                }
-
-                return true;
-            } catch (err) {
-                console.error('Error checking upload limit:', err);
-                return true;
-            }
-        }
-
-        // Modal Functions
-        function openBuyCreditsModal() {
-            closeDropdownMenu();
-            document.getElementById('buyCreditsModal').classList.add('active');
-        }
-
-        function closeBuyCreditsModal() {
-            document.getElementById('buyCreditsModal').classList.remove('active');
-        }
-
-        function closePaywallModal() {
-            document.getElementById('paywallModal').classList.remove('active');
-        }
-
-        // Razorpay Checkout
-        async function initRazorpayCheckout(amount, quantity, source) {
-            if (!window.Razorpay) {
-                alert('Payment system not available. Please try again later.');
-                return;
-            }
-
-            if (!currentUser) {
-                alert('Please login first!');
-                document.getElementById('authModal').classList.add('active');
-                return;
-            }
-
-            let razorpayKeyId;
-            try {
-                const paymentConfigRes = await fetch(`${API_BASE_URL}/api/get-payment-config`);
-                const paymentConfig = await paymentConfigRes.json();
-                if (!paymentConfig.keyId) throw new Error("Payment key not found on server.");
-                razorpayKeyId = paymentConfig.keyId;
-            } catch(e) {
-                alert('Could not retrieve payment configuration. Please try again later.');
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/create-order`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ uid: currentUser.uid, amount: 49, creditsToAdd: 1 })
-                });
-
-                const order = await response.json();
-                if (!response.ok || !order.orderID) throw new Error(order.error || 'Failed to create order.');
-
-                const options = {
-                    key: razorpayKeyId,
-                    amount: order.amount,
-                    currency: order.currency,
-                    name: 'Vinay AI Studio',
-                    description: 'Premium Membership',
-                    order_id: order.orderID,
-                    handler: function (response) { handlePaymentSuccess(response, source); },
-                    prefill: { email: currentUser.email || '', name: currentUser.displayName || 'User' },
-                    theme: { color: '#38bdf8' }
-                };
-
-                const rzp = new Razorpay(options);
-                rzp.open();
-
-            } catch (err) {
-                alert('Failed to initiate payment: ' + err.message);
-            }
-        }
-
-        // Handle Payment Success
-        async function handlePaymentSuccess(response, source) {
-            try {
-                const verifyResponse = await fetch(`${API_BASE_URL}/api/verify-payment`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        uid: currentUser.uid,
-                        razorpay_payment_id: response.razorpay_payment_id,
-                        razorpay_order_id: response.razorpay_order_id,
-                        razorpay_signature: response.razorpay_signature,
-                        creditsToAdd: 1
-                    })
-                });
-
-                const data = await verifyResponse.json();
-
-                if (data.success) {
-                    showToast('✅ Payment successful! You now have Premium access!');
-                    closeBuyCreditsModal();
-                    closePaywallModal();
-                    loadUserCredits();
+                let remaining = data.freeTrialsRemaining;
+                badge.innerHTML = `🎁 ${remaining} Free Daily Trial${remaining === 1 ? '' : 's'}`;
+                if (remaining <= 0) {
+                    badge.innerHTML = `⚠️ 0 Free Trials Left`;
+                    badge.style.background = "#450a0a"; badge.style.color = "#ef4444"; badge.style.borderColor = "#ef4444";
                 } else {
-                    alert('Payment verification failed: ' + data.error);
+                    badge.style.background = ""; badge.style.color = ""; badge.style.borderColor = "";
                 }
-            } catch (err) {
-                alert('Error processing payment: ' + err.message);
+                proBadge.style.display = 'none';
             }
         }
 
-        // File Input Handlers for A/B
-        const dragDropZoneA = document.getElementById('dragDropZoneA');
-        const previewA = document.getElementById('previewA');
-        const dragDropZoneB = document.getElementById('dragDropZoneB');
-        const previewB = document.getElementById('previewB');
+        async function signInWithGoogle() {
+            const googleProvider = new firebase.auth.GoogleAuthProvider();
+            await auth.signInWithPopup(googleProvider);
+            location.reload();
+        }
 
-        fileInputA.onchange = () => {
-            const file = fileInputA.files[0];
-            if (file && file.type.startsWith('image/')) displayThumbnailPreview(file, 'A');
-        };
+        function closeWarningAndOpenAuth() {
+            document.getElementById('warningModal').classList.remove('active');
+            document.getElementById('authModal').classList.add('active');
+        }
 
-        fileInputB.onchange = () => {
-            const file = fileInputB.files[0];
-            if (file && file.type.startsWith('image/')) displayThumbnailPreview(file, 'B');
-        };
-
-        function setupDragDrop(zone, input, preview) {
-            zone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                zone.classList.add('dragover');
-            });
-
-            zone.addEventListener('dragleave', () => {
-                zone.classList.remove('dragover');
-            });
-
-            zone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                zone.classList.remove('dragover');
-                const files = e.dataTransfer.files;
-                if (files.length > 0 && files[0].type.startsWith('image/')) {
-                    input.files = files;
-                    displayThumbnailPreview(files[0], preview.id.slice(-1));
+        // File Input Handlers
+        function setupDragDrop(zoneId, inputId, previewId) {
+            const zone = document.getElementById(zoneId);
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            zone.addEventListener('click', () => input.click());
+            input.onchange = () => {
+                const file = input.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; };
+                    reader.readAsDataURL(file);
                 }
-            });
-
-            zone.addEventListener('click', () => { input.click(); });
-        }
-
-        setupDragDrop(dragDropZoneA, fileInputA, previewA);
-        setupDragDrop(dragDropZoneB, fileInputB, previewB);
-
-        function displayThumbnailPreview(file, slot) {
-            const reader = new FileReader();
-            const preview = document.getElementById('preview' + slot);
-            reader.onload = (e) => {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-                document.getElementById('errorBox').style.display = 'none';
-                document.getElementById('combinedResult').classList.remove('show');
             };
-            reader.readAsDataURL(file);
         }
-
-        function showToast(message, duration = 3000) {
-            const toast = document.getElementById('toast');
-            toast.innerText = message;
-            toast.classList.add('show');
-            setTimeout(() => { toast.classList.remove('show'); }, duration);
-        }
+        setupDragDrop('dragDropZoneA', 'fileInputA', 'previewA');
+        setupDragDrop('dragDropZoneB', 'fileInputB', 'previewB');
 
         // Analyze function
         async function analyze() {
-            if (!fileInputA.files[0]) {
-                return alert("📸 Please select at least Thumbnail A!");
-            }
+            if (!document.getElementById('fileInputA').files[0]) return alert("📸 Select Thumbnail A!");
+            if (!currentUser) return document.getElementById('authModal').classList.add('active');
 
-            if (!currentUser) {
-                document.getElementById('authModal').classList.add('active');
-                return;
-            }
-
-            const canAnalyze = await checkUploadLimitBeforeAnalysis();
-            if (!canAnalyze) return;
-
-            btn.disabled = true;
-            btn.innerText = "🚀 Analyzing...";
-            loader.classList.add('active');
+            btn.disabled = true; loader.classList.add('active');
             document.getElementById('errorBox').style.display = 'none';
             document.getElementById('combinedResult').classList.remove('show');
 
-            startLoaderAnimation();
+            const base64A = (await getBase64(document.getElementById('fileInputA').files[0])).split(',')[1];
+            const mimeTypeA = document.getElementById('fileInputA').files[0].type;
+            let base64B = null, mimeTypeB = null;
 
-            const readerA = new FileReader();
-            readerA.readAsDataURL(fileInputA.files[0]);
+            if (document.getElementById('fileInputB').files[0]) {
+                base64B = (await getBase64(document.getElementById('fileInputB').files[0])).split(',')[1];
+                mimeTypeB = document.getElementById('fileInputB').files[0].type;
+            }
 
-            readerA.onload = () => {
-                const base64A = readerA.result.split(',')[1];
-                const mimeTypeA = fileInputA.files[0].type;
-
-                if (fileInputB.files[0]) {
-                    const readerB = new FileReader();
-                    readerB.readAsDataURL(fileInputB.files[0]);
-                    readerB.onload = async () => {
-                        const base64B = readerB.result.split(',')[1];
-                        const mimeTypeB = fileInputB.files[0].type;
-                        await performAnalysis(base64A, mimeTypeA, base64B, mimeTypeB);
-                    };
-                } else {
-                    performAnalysis(base64A, mimeTypeA);
-                }
-            };
-        }
-
-        async function performAnalysis(base64A, mimeTypeA, base64B = null, mimeTypeB = null) {
             try {
-                const analysis = await analyzeWithToast(base64A, mimeTypeA, base64B, mimeTypeB);
-                displayCombinedResult(analysis);
-
-                uploadCount++;
-                
-                // INSTANT LIVE UPDATE FOR BADGE
-                const badge = document.getElementById('trialBadge');
-                if (badge && userStatus !== 'Pro') {
-                    let remaining = Math.max(0, 2 - uploadCount);
-                    if (remaining > 0) {
-                        badge.innerHTML = `🎁 ${remaining} Free Daily Trial${remaining === 1 ? '' : 's'}`;
-                    } else {
-                        badge.innerHTML = `⚠️ 0 Free Trials Left`;
-                        badge.style.background = "#450a0a";
-                        badge.style.color = "#ef4444";
-                        badge.style.borderColor = "#ef4444";
-                    }
-                }
-                
-                // Still call backend to ensure full sync
-                if (currentUser) loadUserCredits();
-
+                // THE SPECIFIC ANALYZE CALL: Crucially uses the updated error handling
+                const analysis = await performAnalyzeRequest(base64A, mimeTypeA, base64B, mimeTypeB);
+                document.getElementById('analysisText').innerText = analysis.analysis || analysis.explanation;
+                document.getElementById('combinedResult').classList.add('show');
+                loadUserCredits(); // Instant live update
             } catch (err) {
                 const errorMsg = err.message;
-                if (errorMsg.includes('Please Login First')) {
-                    document.getElementById('signInBtn').click();
-                } else if (errorMsg.includes('No credits') || errorMsg.includes('Free trials')) {
-                    document.getElementById('paywallModal').classList.add('active');
+                // THE SPECIFIC ERROR ACTION: Catches the new friendly message
+                if (errorMsg === 'You must sign in with your Google account to analyze thumbnails.') {
+                    document.getElementById('warningModal').classList.add('active'); // Opens the warning modal
+                } else if (errorMsg.includes('Free limit reached')) {
+                    alert('⚠️ 0 trials left. Come back tomorrow or Upgrade to Pro!');
                 } else {
                     document.getElementById('errorBox').innerText = "❌ Error: " + errorMsg;
                     document.getElementById('errorBox').style.display = 'block';
                 }
             } finally {
-                btn.disabled = false;
-                btn.innerText = "🚀 Analyze";
-                loader.classList.remove('active');
+                btn.disabled = false; loader.classList.remove('active');
             }
         }
 
-        async function analyzeWithToast(base64A, mimeTypeA, base64B, mimeTypeB) {
-            const startTime = Date.now();
-            let toastShown = false;
-            
-            const timeoutId = setTimeout(() => {
-                if (!toastShown) {
-                    showToast('⏱️ AI is working... this usually takes a few seconds');
-                    toastShown = true;
-                }
-            }, 8000); 
+        function getBase64(file) { return new Promise((resolve, reject) => {
+            const reader = new FileReader(); reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error);
+        });}
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/analyze`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'x-user-id': currentUser ? currentUser.uid : ''
-                    },
-                    body: JSON.stringify({
-                        base64: base64A, mimeType: mimeTypeA,
-                        base64_b: base64B, mimeType_b: mimeTypeB,
-                        uid: currentUser ? currentUser.uid : null
-                    })
-                });
-
-                const data = await response.json();
-                if (!response.ok) {
-                    if (data.error === 'userNotFound') throw new Error('Please Login First to use the tool');
-                    throw new Error(data.error || data.message || 'Analysis failed');
-                }
-
-                const elapsed = Date.now() - startTime;
-                if (elapsed < 3500) await new Promise(resolve => setTimeout(resolve, 3500 - elapsed));
-
-                return data;
-            } finally {
-                clearTimeout(timeoutId);
-            }
-        }
-
-        function getScoreColor(score) {
-            if (score >= 75) return 'high';
-            if (score >= 50) return 'medium';
-            return 'low';
-        }
-
-        function displayCombinedResult(analysis) {
-            const result = document.getElementById('combinedResult');
-            
-            if(analysis.winner) {
-                document.getElementById('thumbnailScore').innerText = analysis.winner;
-                document.getElementById('titleScore').innerText = '';
-                document.getElementById('combinedScore').innerText = '';
-                document.getElementById('analysisText').innerText = analysis.explanation;
-                document.getElementById('tipsList').innerHTML = '';
-            } else {
-                document.getElementById('thumbnailScore').innerText = analysis.thumbnailScore;
-                document.getElementById('thumbnailScore').className = 'score-card-value ' + getScoreColor(analysis.thumbnailScore);
-                
-                document.getElementById('titleScore').innerText = analysis.titleScore;
-                document.getElementById('titleScore').className = 'score-card-value ' + getScoreColor(analysis.titleScore);
-                
-                document.getElementById('combinedScore').innerText = analysis.combinedScore;
-                document.getElementById('combinedScore').className = 'score-card-value ' + getScoreColor(analysis.combinedScore);
-
-                document.getElementById('analysisText').innerText = analysis.analysis;
-
-                const tipsList = document.getElementById('tipsList');
-                tipsList.innerHTML = '';
-                analysis.tips.forEach(tip => {
-                    const div = document.createElement('div');
-                    div.className = 'tip-item';
-                    div.innerText = '• ' + tip;
-                    tipsList.appendChild(div);
-                });
-            }
-            result.classList.add('show');
-        }
-
-        function startLoaderAnimation() {
-            const messages = ['Analyzing thumbnail A...', 'Analyzing thumbnail B...', 'Comparing designs...', 'Declaring a winner...'];
-            let currentMessage = 0;
-            const loaderText = document.getElementById('loaderText');
-            
-            const interval = setInterval(() => {
-                currentMessage++;
-                if (currentMessage < messages.length) loaderText.innerText = messages[currentMessage];
-                else clearInterval(interval);
-            }, 875);
-        }
-
-        // --- THE POPUP FIX: AWAIT PROMISE & FORCE HIDE ---
-        async function signInWithGoogle() {
-            try {
-                const googleProvider = new firebase.auth.GoogleAuthProvider();
-                
-                // Wait for popup to finish
-                const result = await auth.signInWithPopup(googleProvider);
-                
-                // IMMMEDIATELY KILL THE MODALS! No Refresh needed!
-                document.getElementById('authModal').classList.remove('active');
-                document.getElementById('warningModal').classList.remove('active');
-                
-                if (result.user) {
-                    await fetch(`${API_BASE_URL}/api/verify-phone-auth`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ uid: result.user.uid, email: result.user.email, displayName: result.user.displayName })
-                    });
-                    
-                    // Reload credits behind the scenes
-                    loadUserCredits();
-                }
-            } catch (err) {
-                console.error('Error starting Google sign in popup:', err);
-            }
-        }
-
-        function closeAuthModal() {
-            document.getElementById('warningModal').classList.add('active');
-        }
-        
-        function closeAndReopenAuth() {
-            document.getElementById('warningModal').classList.remove('active');
-            document.getElementById('authModal').classList.add('active');
-        }
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && document.getElementById('authModal').classList.contains('active')) {
-                e.preventDefault();
-                closeAuthModal();
-            }
-        });
-
-        function copyAnalysis() {
-            const winner = document.getElementById('thumbnailScore').innerText;
-            const explanation = document.getElementById('analysisText').innerText;
-            const fullText = `A/B Test Result\n\nWinner: ${winner}\n\nExplanation:\n${explanation}`;
-
-            navigator.clipboard.writeText(fullText).then(() => {
-                document.getElementById('copyBtn').innerText = '✅ Copied!';
-                setTimeout(() => document.getElementById('copyBtn').innerText = '📋 Copy Analysis', 2000);
+        // Dedicated fetch function for Analyze to handle specific error mapping
+        async function performAnalyzeRequest(base64A, mimeTypeA, base64B, mimeTypeB) {
+            const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
+                body: JSON.stringify({ base64: base64A, mimeType: mimeTypeA, base64_b: base64B, mimeType_b: mimeTypeB, uid: currentUser.uid })
             });
+            const data = await response.json();
+            if (!response.ok) {
+                // Map the new backend error code to a specific friendly action message
+                if (data.error === 'userNotFound') {
+                    throw new Error('You must sign in with your Google account to analyze thumbnails.');
+                }
+                throw new Error(data.message || 'Analysis failed');
+            }
+            return data;
         }
-    </script>
 
-    <script>
-        document.getElementById('menuIcon').onclick = function() {
+        // Dropdown Menu Toggle
+        document.getElementById('menuIcon').onclick = e => {
+            e.stopPropagation();
             document.getElementById('dropdownMenu').classList.toggle('show');
         };
-
-        document.addEventListener('click', function(event) {
-            const menuIcon = document.getElementById('menuIcon');
-            const dropdownMenu = document.getElementById('dropdownMenu');
-            if (menuIcon && dropdownMenu) {
-                const isClickInsideMenu = menuIcon.contains(event.target);
-                const isClickInsideDropdown = dropdownMenu.contains(event.target);
-                if (!isClickInsideMenu && !isClickInsideDropdown && dropdownMenu.classList.contains('show')) {
-                    dropdownMenu.classList.remove('show');
-                }
-            }
-        });
-
-        function openModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.classList.add('active');
-        }
-
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.classList.remove('active');
-        }
-
-        document.addEventListener('click', function(event) {
-            const modals = ['privacyModal', 'refundModal', 'contactModal'];
-            modals.forEach(modalId => {
-                const modal = document.getElementById(modalId);
-                if (modal && event.target === modal) closeModal(modalId);
-            });
-        });
-
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                ['privacyModal', 'refundModal', 'contactModal'].forEach(modalId => closeModal(modalId));
-            }
-        });
+        document.addEventListener('click', () => document.getElementById('dropdownMenu').classList.remove('show'));
     </script>
 </body>
 </html>

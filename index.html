@@ -369,14 +369,15 @@
             background: linear-gradient(135deg, #1e293b, #0f172a);
             border: 1px solid #38bdf8;
             color: #7dd3fc;
-            padding: 0.5rem 1.25rem;
+            padding: 0.6rem 1.5rem;
             border-radius: 9999px;
-            font-size: 0.85rem;
+            font-size: 1rem;
             font-weight: 700;
             display: inline-block;
-            margin-bottom: 1rem;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
             letter-spacing: 0.5px;
+            transition: all 0.3s ease;
         }
 
         .upload-container {
@@ -802,7 +803,6 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
     <div class="header">
         <div class="header-brand">🎯 Thumbnail Tester</div>
         <div class="header-auth">
@@ -821,18 +821,15 @@
         </div>
     </div>
     
-    <!-- Main Content -->
     <div class="main-container">
     <div class="card">
         <h1>✨ Vinay AI Studio</h1>
-        <p style="color: #94a3b8;">Optimize Your YouTube Content</p>
+        <p style="color: #94a3b8; margin-bottom: 1.5rem;">Optimize Your YouTube Content</p>
 
-        <!-- Free Trials Badge -->
-        <div style="text-align: center; margin-bottom: 1rem;">
+        <div style="text-align: center; width: 100%;">
             <div class="free-trials-badge" id="trialBadge">🎁 2 Free Daily Trials</div>
         </div>
 
-        <!-- A/B Thumbnail Testing Section -->
         <div class="upload-container">
             <div class="drop-zone-wrapper">
                 <div class="section-title">🖼️ Thumbnail A (Required)</div>
@@ -860,10 +857,8 @@
             </div>
         </div>
 
-        <!-- Compare Button -->
         <button id="btn" onclick="analyze()">🚀 Analyze</button>
 
-        <!-- Loader -->
         <div class="loader" id="loader">
             <div class="progress-bar-container">
                 <div class="progress-bar"></div>
@@ -874,10 +869,8 @@
             </div>
         </div>
 
-        <!-- Error Box -->
         <div id="errorBox" class="error"></div>
 
-        <!-- Combined Analysis Result -->
         <div id="combinedResult" class="combined-score-section">
             <div class="score-grid">
                 <div class="score-card">
@@ -903,20 +896,11 @@
 
             <button id="copyBtn" onclick="copyAnalysis()">📋 Copy Analysis</button>
         </div>
-
-        <!-- Old Result Section (hidden but kept for compatibility) -->
-        <div id="result" style="display: none;">
-            <div class="score" id="scoreVal">Score: 0%</div>
-            <div id="tipsListCompat"></div>
-            <button id="copyBtnCompat" onclick="copyTips()">📋 Copy Tips</button>
-        </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
-    <!-- Footer -->
     <div class="footer">
         <div style="margin-bottom: 0.75rem;">Made with ❤️ by Vinay AI Studio</div>
         <div style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; font-size: 0.85rem;">
@@ -926,7 +910,6 @@
         </div>
     </div>
 
-    <!-- Warning Modal -->
     <div class="modal-overlay" id="warningModal">
         <div class="modal">
             <h2>⚠️ Sign In Required</h2>
@@ -938,17 +921,14 @@
         </div>
     </div>
 
-    <!-- Google Sign-In Modal -->
     <div class="modal-overlay" id="authModal">
         <div class="modal">
             <h2>🎉 Your Report is Ready!</h2>
             <p>Sign in to unlock your thumbnail analysis and get <strong>2 FREE tests daily!</strong></p>
             
-            <!-- Google Sign-In Section -->
             <div style="margin: 1.5rem 0;" id="googleSignInSection">
                 <button id="googleSignInBtn" class="btn-google" style="width: 100%;" onclick="signInWithGoogle()" disabled>
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Google G Logo -->
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                         <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -962,7 +942,6 @@
         </div>
     </div>
 
-    <!-- Sign Out Confirmation Modal -->
     <div class="modal-overlay" id="signOutConfirmModal">
         <div class="modal">
             <h2>⚠️ Sign Out?</h2>
@@ -980,7 +959,6 @@
         </div>
     </div>
 
-    <!-- Paywall Modal - Unlock Pro Subscription -->
     <div class="modal-overlay" id="paywallModal">
         <div class="modal">
             <h2>🚀 Unlock Pro & Continue</h2>
@@ -1014,7 +992,6 @@
         </div>
     </div>
 
-    <!-- Privacy Policy Modal -->
     <div class="modal-overlay" id="privacyModal">
         <div class="modal">
             <h2>🔒 Privacy Policy</h2>
@@ -1028,7 +1005,6 @@
         </div>
     </div>
 
-    <!-- Refund Policy Modal -->
     <div class="modal-overlay" id="refundModal">
         <div class="modal">
             <h2>💰 Refund Policy</h2>
@@ -1042,7 +1018,6 @@
         </div>
     </div>
 
-    <!-- Contact Us Modal -->
     <div class="modal-overlay" id="contactModal">
         <div class="modal">
             <h2>📧 Contact Us</h2>
@@ -1057,7 +1032,6 @@
         </div>
     </div>
 
-    <!-- Upgrade to Pro Modal - From Header Button -->
     <div class="modal-overlay" id="buyCreditsModal">
         <div class="modal">
             <h2>🚀 Upgrade to Pro</h2>
@@ -1087,7 +1061,6 @@
         </div>
     </div>
 
-    <!-- Firebase SDK (Compat - Global firebase object) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
@@ -1122,35 +1095,7 @@
                 const googleSignInBtn = document.getElementById('googleSignInBtn');
                 if (signInBtn) signInBtn.disabled = false;
                 if (googleSignInBtn) googleSignInBtn.disabled = false;
-                if (signInBtn) signInBtn.innerText = '🔐 Sign In'; // Update text
-
-                // Handle Redirect Result for Mobile Compatibility
-                auth.getRedirectResult().then(async (result) => {
-                    if (result && result.credential) {
-                        console.log("Redirect login successful");
-                    }
-                    
-                    if (result && result.user) {
-                        const user = result.user;
-                        // Save user to backend/Firestore
-                        await fetch(`${API_BASE_URL}/api/verify-phone-auth`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                uid: user.uid,
-                                email: user.email,
-                                displayName: user.displayName
-                            })
-                        });
-                        console.log('User signed in via redirect:', user.uid, user.email);
-                        document.getElementById('authModal').classList.remove('active');
-                    }
-                }).catch(error => {
-                    console.error("Redirect Auth Error:", error.message);
-                    alert("Login Error: Please check if your browser blocks third-party cookies.");
-                });
+                if (signInBtn) signInBtn.innerText = '🔐 Sign In';
 
                 // Check if user is already logged in
                 auth.onAuthStateChanged(async (user) => {
@@ -1160,7 +1105,7 @@
                         if (user) {
                             console.log('User logged in:', user.uid);
                             
-                            // Explicitly hide the authentication modals after successful login
+                            // FORCE HIDE ANY MODAL ON LOAD
                             const authModalEl = document.getElementById('authModal');
                             if (authModalEl) authModalEl.classList.remove('active');
                             
@@ -1184,18 +1129,14 @@
                 var dropdownMenu = document.getElementById('dropdownMenu');
                 
                 if (currentUser) {
-                    // Show hamburger and buy button when logged in
                     if (menuIcon) menuIcon.style.display = 'flex';
                     if (signInBtn) signInBtn.style.display = 'none';
                     if (buyCreditsBtn) buyCreditsBtn.style.display = 'block';
-                    // Close dropdown menu when auth state changes
                     if (dropdownMenu) dropdownMenu.classList.remove('show');
                 } else {
-                    // Hide hamburger and buy button, show sign-in button when logged out
                     if (menuIcon) menuIcon.style.display = 'none';
                     if (signInBtn) signInBtn.style.display = 'block';
                     if (buyCreditsBtn) buyCreditsBtn.style.display = 'none';
-                    // Close dropdown menu when auth state changes
                     if (dropdownMenu) dropdownMenu.classList.remove('show');
                 }
             } catch (e) {
@@ -1215,42 +1156,42 @@
             dropdownMenu.classList.remove('show');
         }
         
-        // Handle Dashboard Click
         function handleDashboard() {
             alert('Dashboard coming soon!');
             closeDropdownMenu();
         }
         
-        // Handle My Credits Click
         function handleMyCredits() {
             alert('My Credits coming soon!');
             closeDropdownMenu();
         }
         
-        // Handle Sign Out Click
         function handleSignOutClick() {
-            // Show email in confirmation modal
             if (currentUser) {
                 document.getElementById('userEmailDisplay').innerText = currentUser.email || 'user@example.com';
             }
-            // Show sign-out confirmation modal
             document.getElementById('signOutConfirmModal').classList.add('active');
-            // Close dropdown
             closeDropdownMenu();
         }
         
-        // Cancel Sign Out
         function cancelSignOut() {
             document.getElementById('signOutConfirmModal').classList.remove('active');
         }
         
-        // Confirm Sign Out
         function confirmSignOut() {
             auth.signOut().then(() => {
                 currentUser = null;
                 updateAuthUI();
                 document.getElementById('signOutConfirmModal').classList.remove('active');
-                console.log('User signed out');
+                
+                // Reset Badge on Signout
+                const badge = document.getElementById('trialBadge');
+                if(badge) {
+                    badge.innerHTML = `🎁 2 Free Daily Trials`;
+                    badge.style.background = "";
+                    badge.style.color = "";
+                    badge.style.borderColor = "";
+                }
             }).catch((err) => {
                 console.error('Error signing out:', err);
             });
@@ -1261,11 +1202,13 @@
             if (!currentUser) return;
 
             try {
+                // ADDED cache: 'no-store' TO FIX BROWSER CACHING OLD DATA
                 const response = await fetch(`${API_BASE_URL}/api/get-user-credits`, {
                     method: 'POST',
+                    cache: 'no-store',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'x-user-id': currentUser ? currentUser.uid : ''
+                        'x-user-id': currentUser.uid
                     },
                     body: JSON.stringify({ uid: currentUser.uid })
                 });
@@ -1274,36 +1217,44 @@
                 userStatus = data.status || 'free';
                 uploadCount = data.uploadCount || 0;
 
-                console.log(`User Status: ${userStatus}, Uploads: ${uploadCount}, Days Remaining: ${data.daysRemaining}`);
-
-                const badge = document.getElementById('trialBadge');
-                if (badge && data) {
-                    if (data.status === 'Pro') {
-                        badge.innerHTML = "✨ Pro Member: Unlimited Analysis";
-                        badge.style.background = "linear-gradient(45deg, #FFD700, #FFA500)";
-                        badge.style.color = "#000";
-                    } else {
-                        const remaining = data.freeTrialsRemaining !== undefined ? data.freeTrialsRemaining : 2;
-                        badge.innerHTML = `🎁 ${remaining} Free Daily Trial${remaining === 1 ? '' : 's'}`;
-                        badge.style.background = ""; // Revert to CSS default
-                        badge.style.color = ""; // Revert to CSS default
-                    }
-                }
-
-                // Update header based on Pro status
+                updateBadgeUI(data);
                 updateHeaderUI(data);
             } catch (err) {
                 console.error('Error loading credits:', err);
             }
         }
 
+        function updateBadgeUI(data) {
+            const badge = document.getElementById('trialBadge');
+            if (badge && data) {
+                if (data.status === 'Pro') {
+                    badge.innerHTML = "✨ Pro Member: Unlimited Analysis";
+                    badge.style.background = "linear-gradient(45deg, #FFD700, #FFA500)";
+                    badge.style.color = "#000";
+                    badge.style.borderColor = "#FFD700";
+                } else {
+                    const remaining = data.freeTrialsRemaining !== undefined ? data.freeTrialsRemaining : Math.max(0, 2 - data.uploadCount);
+                    
+                    if (remaining > 0) {
+                        badge.innerHTML = `🎁 ${remaining} Free Daily Trial${remaining === 1 ? '' : 's'}`;
+                        badge.style.background = ""; 
+                        badge.style.color = "";
+                        badge.style.borderColor = "";
+                    } else {
+                        badge.innerHTML = `⚠️ 0 Free Trials Left`;
+                        badge.style.background = "#450a0a";
+                        badge.style.color = "#ef4444";
+                        badge.style.borderColor = "#ef4444";
+                    }
+                }
+            }
+        }
+
         // Update Header UI Based on Pro Status
         function updateHeaderUI(creditsData) {
             if (creditsData.status === 'Pro' && creditsData.daysRemaining > 0) {
-                // Show Pro badge instead of upgrade button
                 buyCreditsBtn.style.display = 'none';
                 
-                // Create or update Pro badge
                 let proBadge = document.getElementById('proBadge');
                 if (!proBadge) {
                     proBadge = document.createElement('div');
@@ -1316,7 +1267,6 @@
                 proBadge.innerHTML = `✅ Pro Member<div class="pro-expiry">Ends in ${creditsData.daysRemaining} day${creditsData.daysRemaining !== 1 ? 's' : ''}</div>`;
                 proBadge.style.display = 'flex';
             } else {
-                // Show upgrade button
                 const proBadge = document.getElementById('proBadge');
                 if (proBadge) proBadge.style.display = 'none';
                 buyCreditsBtn.style.display = 'block';
@@ -1326,17 +1276,18 @@
         // Check Upload Limit Before Analysis
         async function checkUploadLimitBeforeAnalysis() {
             if (!currentUser) {
-                // Non-logged-in users can't analyze
                 alert('Please login first to analyze thumbnails!');
                 return false;
             }
 
             try {
+                // ADDED cache: 'no-store'
                 const response = await fetch(`${API_BASE_URL}/api/check-upload-limit`, {
                     method: 'POST',
+                    cache: 'no-store',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'x-user-id': currentUser ? currentUser.uid : ''
+                        'x-user-id': currentUser.uid
                     },
                     body: JSON.stringify({ uid: currentUser.uid })
                 });
@@ -1344,7 +1295,6 @@
                 const data = await response.json();
 
                 if (!data.canUpload) {
-                    // Show paywall modal
                     document.getElementById('paywallModal').classList.add('active');
                     return false;
                 }
@@ -1352,7 +1302,7 @@
                 return true;
             } catch (err) {
                 console.error('Error checking upload limit:', err);
-                return true; // Allow anyway if there's an error
+                return true;
             }
         }
 
@@ -1372,7 +1322,6 @@
 
         // Razorpay Checkout
         async function initRazorpayCheckout(amount, quantity, source) {
-            // Check if Razorpay script is loaded
             if (!window.Razorpay) {
                 alert('Payment system not available. Please try again later.');
                 return;
@@ -1388,39 +1337,23 @@
             try {
                 const paymentConfigRes = await fetch(`${API_BASE_URL}/api/get-payment-config`);
                 const paymentConfig = await paymentConfigRes.json();
-                if (!paymentConfig.keyId) {
-                    throw new Error("Payment key not found on server.");
-                }
+                if (!paymentConfig.keyId) throw new Error("Payment key not found on server.");
                 razorpayKeyId = paymentConfig.keyId;
             } catch(e) {
-                console.error('Error fetching payment key:', e);
                 alert('Could not retrieve payment configuration. Please try again later.');
                 return;
             }
 
             try {
-                // Create order on backend
                 const response = await fetch(`${API_BASE_URL}/api/create-order`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        uid: currentUser.uid,
-                        amount: 49,
-                        creditsToAdd: 1
-                    })
+                    body: JSON.stringify({ uid: currentUser.uid, amount: 49, creditsToAdd: 1 })
                 });
 
                 const order = await response.json();
+                if (!response.ok || !order.orderID) throw new Error(order.error || 'Failed to create order.');
 
-                // Check for errors in response
-                if (!response.ok || !order.orderID) {
-                    console.error('❌ Order Creation Failed:', order);
-                    throw new Error(order.error || 'Failed to create order. Please try again.');
-                }
-
-                console.log('✅ Order Created:', order.orderID);
-
-                // Razorpay Options
                 const options = {
                     key: razorpayKeyId,
                     amount: order.amount,
@@ -1428,23 +1361,15 @@
                     name: 'Vinay AI Studio',
                     description: 'Premium Membership',
                     order_id: order.orderID,
-                    handler: function (response) {
-                        handlePaymentSuccess(response, source);
-                    },
-                    prefill: {
-                        email: currentUser.email || '',
-                        name: currentUser.displayName || 'User'
-                    },
-                    theme: {
-                        color: '#38bdf8'
-                    }
+                    handler: function (response) { handlePaymentSuccess(response, source); },
+                    prefill: { email: currentUser.email || '', name: currentUser.displayName || 'User' },
+                    theme: { color: '#38bdf8' }
                 };
 
                 const rzp = new Razorpay(options);
                 rzp.open();
 
             } catch (err) {
-                console.error('Error initiating checkout:', err);
                 alert('Failed to initiate payment: ' + err.message);
             }
         }
@@ -1452,7 +1377,6 @@
         // Handle Payment Success
         async function handlePaymentSuccess(response, source) {
             try {
-                // Verify payment on backend
                 const verifyResponse = await fetch(`${API_BASE_URL}/api/verify-payment`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1469,22 +1393,13 @@
 
                 if (data.success) {
                     showToast('✅ Payment successful! You now have Premium access!');
-                    
-                    // Close modals
                     closeBuyCreditsModal();
                     closePaywallModal();
-
-                    // Reload credits
                     loadUserCredits();
-
-                    setTimeout(() => {
-                        showToast('🎉 Ready to analyze unlimited thumbnails!');
-                    }, 1000);
                 } else {
                     alert('Payment verification failed: ' + data.error);
                 }
             } catch (err) {
-                console.error('Error verifying payment:', err);
                 alert('Error processing payment: ' + err.message);
             }
         }
@@ -1497,23 +1412,14 @@
 
         fileInputA.onchange = () => {
             const file = fileInputA.files[0];
-            if (file && file.type.startsWith('image/')) {
-                displayThumbnailPreview(file, 'A');
-            } else {
-                alert('Please select a valid image file for Thumbnail A');
-            }
+            if (file && file.type.startsWith('image/')) displayThumbnailPreview(file, 'A');
         };
 
         fileInputB.onchange = () => {
             const file = fileInputB.files[0];
-            if (file && file.type.startsWith('image/')) {
-                displayThumbnailPreview(file, 'B');
-            } else {
-                alert('Please select a valid image file for Thumbnail B');
-            }
+            if (file && file.type.startsWith('image/')) displayThumbnailPreview(file, 'B');
         };
 
-        // Drag & Drop Event Handlers
         function setupDragDrop(zone, input, preview) {
             zone.addEventListener('dragover', (e) => {
                 e.preventDefault();
@@ -1527,19 +1433,14 @@
             zone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 zone.classList.remove('dragover');
-                
                 const files = e.dataTransfer.files;
                 if (files.length > 0 && files[0].type.startsWith('image/')) {
                     input.files = files;
                     displayThumbnailPreview(files[0], preview.id.slice(-1));
-                } else {
-                    alert('Please drop a valid image file');
                 }
             });
 
-            zone.addEventListener('click', () => {
-                input.click();
-            });
+            zone.addEventListener('click', () => { input.click(); });
         }
 
         setupDragDrop(dragDropZoneA, fileInputA, previewA);
@@ -1557,14 +1458,11 @@
             reader.readAsDataURL(file);
         }
 
-        // Toast Notification
         function showToast(message, duration = 3000) {
             const toast = document.getElementById('toast');
             toast.innerText = message;
             toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, duration);
+            setTimeout(() => { toast.classList.remove('show'); }, duration);
         }
 
         // Analyze function
@@ -1574,15 +1472,12 @@
             }
 
             if (!currentUser) {
-                alert('🔐 Please login first to analyze!');
                 document.getElementById('authModal').classList.add('active');
                 return;
             }
 
             const canAnalyze = await checkUploadLimitBeforeAnalysis();
-            if (!canAnalyze) {
-                return;
-            }
+            if (!canAnalyze) return;
 
             btn.disabled = true;
             btn.innerText = "🚀 Analyzing...";
@@ -1616,25 +1511,36 @@
         async function performAnalysis(base64A, mimeTypeA, base64B = null, mimeTypeB = null) {
             try {
                 const analysis = await analyzeWithToast(base64A, mimeTypeA, base64B, mimeTypeB);
-
                 displayCombinedResult(analysis);
 
                 uploadCount++;
                 
-                // Instantly update badge count after analysis
+                // INSTANT LIVE UPDATE FOR BADGE
+                const badge = document.getElementById('trialBadge');
+                if (badge && userStatus !== 'Pro') {
+                    let remaining = Math.max(0, 2 - uploadCount);
+                    if (remaining > 0) {
+                        badge.innerHTML = `🎁 ${remaining} Free Daily Trial${remaining === 1 ? '' : 's'}`;
+                    } else {
+                        badge.innerHTML = `⚠️ 0 Free Trials Left`;
+                        badge.style.background = "#450a0a";
+                        badge.style.color = "#ef4444";
+                        badge.style.borderColor = "#ef4444";
+                    }
+                }
+                
+                // Still call backend to ensure full sync
                 if (currentUser) loadUserCredits();
 
             } catch (err) {
                 const errorMsg = err.message;
                 if (errorMsg.includes('Please Login First')) {
-                    alert('🔐 ' + errorMsg + '\n\nClick OK to login');
                     document.getElementById('signInBtn').click();
                 } else if (errorMsg.includes('No credits') || errorMsg.includes('Free trials')) {
-                    // document.getElementById('paywallModal').classList.add('active');
-                    alert('💳 ' + errorMsg);
+                    document.getElementById('paywallModal').classList.add('active');
                 } else {
                     document.getElementById('errorBox').innerText = "❌ Error: " + errorMsg;
-                    document.getElementById('errorMsg').style.display = 'block';
+                    document.getElementById('errorBox').style.display = 'block';
                 }
             } finally {
                 btn.disabled = false;
@@ -1643,8 +1549,6 @@
             }
         }
 
-
-        // Analyze with Toast for Long Operations
         async function analyzeWithToast(base64A, mimeTypeA, base64B, mimeTypeB) {
             const startTime = Date.now();
             let toastShown = false;
@@ -1654,7 +1558,7 @@
                     showToast('⏱️ AI is working... this usually takes a few seconds');
                     toastShown = true;
                 }
-            }, 8000); // Show toast after 8 seconds
+            }, 8000); 
 
             try {
                 const response = await fetch(`${API_BASE_URL}/api/analyze`, {
@@ -1664,26 +1568,20 @@
                         'x-user-id': currentUser ? currentUser.uid : ''
                     },
                     body: JSON.stringify({
-                        base64: base64A,
-                        mimeType: mimeTypeA,
-                        base64_b: base64B,
-                        mimeType_b: mimeTypeB,
+                        base64: base64A, mimeType: mimeTypeA,
+                        base64_b: base64B, mimeType_b: mimeTypeB,
                         uid: currentUser ? currentUser.uid : null
                     })
                 });
 
                 const data = await response.json();
                 if (!response.ok) {
-                    if (data.error === 'userNotFound') {
-                        throw new Error('Please Login First to use the tool');
-                    }
-                    throw new Error(data.error || 'Analysis failed');
+                    if (data.error === 'userNotFound') throw new Error('Please Login First to use the tool');
+                    throw new Error(data.error || data.message || 'Analysis failed');
                 }
 
                 const elapsed = Date.now() - startTime;
-                if (elapsed < 3500) {
-                    await new Promise(resolve => setTimeout(resolve, 3500 - elapsed));
-                }
+                if (elapsed < 3500) await new Promise(resolve => setTimeout(resolve, 3500 - elapsed));
 
                 return data;
             } finally {
@@ -1691,14 +1589,12 @@
             }
         }
 
-        // Get Score Color
         function getScoreColor(score) {
             if (score >= 75) return 'high';
             if (score >= 50) return 'medium';
             return 'low';
         }
 
-        // Display Combined Result
         function displayCombinedResult(analysis) {
             const result = document.getElementById('combinedResult');
             
@@ -1707,11 +1603,8 @@
                 document.getElementById('titleScore').innerText = '';
                 document.getElementById('combinedScore').innerText = '';
                 document.getElementById('analysisText').innerText = analysis.explanation;
-                
-                const tipsList = document.getElementById('tipsList');
-                tipsList.innerHTML = '';
+                document.getElementById('tipsList').innerHTML = '';
             } else {
-                // Update scores
                 document.getElementById('thumbnailScore').innerText = analysis.thumbnailScore;
                 document.getElementById('thumbnailScore').className = 'score-card-value ' + getScoreColor(analysis.thumbnailScore);
                 
@@ -1721,10 +1614,8 @@
                 document.getElementById('combinedScore').innerText = analysis.combinedScore;
                 document.getElementById('combinedScore').className = 'score-card-value ' + getScoreColor(analysis.combinedScore);
 
-                // Update analysis text
                 document.getElementById('analysisText').innerText = analysis.analysis;
 
-                // Update tips
                 const tipsList = document.getElementById('tipsList');
                 tipsList.innerHTML = '';
                 analysis.tips.forEach(tip => {
@@ -1734,57 +1625,57 @@
                     tipsList.appendChild(div);
                 });
             }
-
             result.classList.add('show');
         }
 
-        // Dynamic Loader Animation
         function startLoaderAnimation() {
-            const messages = [
-                'Analyzing thumbnail A...',
-                'Analyzing thumbnail B...',
-                'Comparing designs...',
-                'Declaring a winner...'
-            ];
-            
+            const messages = ['Analyzing thumbnail A...', 'Analyzing thumbnail B...', 'Comparing designs...', 'Declaring a winner...'];
             let currentMessage = 0;
             const loaderText = document.getElementById('loaderText');
             
             const interval = setInterval(() => {
                 currentMessage++;
-                if (currentMessage < messages.length) {
-                    loaderText.innerText = messages[currentMessage];
-                } else {
-                    clearInterval(interval);
-                }
+                if (currentMessage < messages.length) loaderText.innerText = messages[currentMessage];
+                else clearInterval(interval);
             }, 875);
         }
 
-        // Sign In with Google
+        // --- THE POPUP FIX: AWAIT PROMISE & FORCE HIDE ---
         async function signInWithGoogle() {
             try {
                 const googleProvider = new firebase.auth.GoogleAuthProvider();
-                // Using Redirect instead of Popup for maximum mobile browser compatibility
-                auth.signInWithPopup(googleProvider);
+                
+                // Wait for popup to finish
+                const result = await auth.signInWithPopup(googleProvider);
+                
+                // IMMMEDIATELY KILL THE MODALS! No Refresh needed!
+                document.getElementById('authModal').classList.remove('active');
+                document.getElementById('warningModal').classList.remove('active');
+                
+                if (result.user) {
+                    await fetch(`${API_BASE_URL}/api/verify-phone-auth`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ uid: result.user.uid, email: result.user.email, displayName: result.user.displayName })
+                    });
+                    
+                    // Reload credits behind the scenes
+                    loadUserCredits();
+                }
             } catch (err) {
-                console.error('Error starting Google sign in redirect:', err);
-                alert('Error starting sign in: ' + err.message);
+                console.error('Error starting Google sign in popup:', err);
             }
         }
 
-        // Close Auth Modal (now shows warning instead)
         function closeAuthModal() {
-            // Show warning instead of closing
             document.getElementById('warningModal').classList.add('active');
         }
         
-        // Close warning and reopen auth modal
         function closeAndReopenAuth() {
             document.getElementById('warningModal').classList.remove('active');
             document.getElementById('authModal').classList.add('active');
         }
         
-        // Prevent ESC key from closing auth modal
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && document.getElementById('authModal').classList.contains('active')) {
                 e.preventDefault();
@@ -1792,39 +1683,9 @@
             }
         });
 
-        // Local Storage Usage Tracking
-        function getLocalStorageUsage() {
-            const today = new Date().toDateString();
-            const stored = localStorage.getItem('thumbnailTestUsage');
-            
-            if (!stored) {
-                return { date: today, testsToday: 0 };
-            }
-
-            const usage = JSON.parse(stored);
-            if (usage.date !== today) {
-                return { date: today, testsToday: 0 };
-            }
-
-            return usage;
-        }
-
-        function updateLocalStorageUsage() {
-            const today = new Date().toDateString();
-            const usage = getLocalStorageUsage();
-            usage.date = today;
-            usage.testsToday++;
-            localStorage.setItem('thumbnailTestUsage', JSON.stringify(usage));
-        }
-
-        function incrementLocalStorageUsage() {
-            updateLocalStorageUsage();
-        }
-
         function copyAnalysis() {
             const winner = document.getElementById('thumbnailScore').innerText;
             const explanation = document.getElementById('analysisText').innerText;
-
             const fullText = `A/B Test Result\n\nWinner: ${winner}\n\nExplanation:\n${explanation}`;
 
             navigator.clipboard.writeText(fullText).then(() => {
@@ -1834,60 +1695,44 @@
         }
     </script>
 
-    <!-- Simple Hamburger Menu Toggle -->
     <script>
         document.getElementById('menuIcon').onclick = function() {
             document.getElementById('dropdownMenu').classList.toggle('show');
         };
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
             const menuIcon = document.getElementById('menuIcon');
             const dropdownMenu = document.getElementById('dropdownMenu');
-            
             if (menuIcon && dropdownMenu) {
                 const isClickInsideMenu = menuIcon.contains(event.target);
                 const isClickInsideDropdown = dropdownMenu.contains(event.target);
-                
                 if (!isClickInsideMenu && !isClickInsideDropdown && dropdownMenu.classList.contains('show')) {
                     dropdownMenu.classList.remove('show');
                 }
             }
         });
 
-        // Modal Functions for Policies
         function openModal(modalId) {
             const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.classList.add('active');
-            }
+            if (modal) modal.classList.add('active');
         }
 
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.classList.remove('active');
-            }
+            if (modal) modal.classList.remove('active');
         }
 
-        // Close modal when clicking outside the modal content
         document.addEventListener('click', function(event) {
             const modals = ['privacyModal', 'refundModal', 'contactModal'];
             modals.forEach(modalId => {
                 const modal = document.getElementById(modalId);
-                if (modal && event.target === modal) {
-                    closeModal(modalId);
-                }
+                if (modal && event.target === modal) closeModal(modalId);
             });
         });
 
-        // Close modal with Escape key
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
-                const modals = ['privacyModal', 'refundModal', 'contactModal'];
-                modals.forEach(modalId => {
-                    closeModal(modalId);
-                });
+                ['privacyModal', 'refundModal', 'contactModal'].forEach(modalId => closeModal(modalId));
             }
         });
     </script>

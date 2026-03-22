@@ -30,7 +30,6 @@ try {
     db = admin.firestore();
 } catch (error) {
     console.error('❌ Error Initializing Firebase Admin:', error);
-    // Safe mock for db to prevent crashes
     db = { collection: () => ({ doc: () => ({ get: async () => ({ exists: false }), set: async () => {}, update: async () => {} }) }) };
 }
 
@@ -65,7 +64,7 @@ app.post('/api/verify-phone-auth', async (req, res) => {
         const userDoc = await userRef.get();
 
         if (!userDoc.exists) {
-            // Brand new account - Set strictly to 0 used
+            // Brand new account - Set strictly to 0
             await userRef.set({
                 email: email,
                 displayName: displayName || null,
@@ -81,7 +80,7 @@ app.post('/api/verify-phone-auth', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 🚀 2. BULLETPROOF: Get User Credits
+// 🚀 2. BULLETPROOF: Get User Credits (The root cause of "0" on load)
 app.post('/api/get-user-credits', async (req, res) => {
     try {
         const uid = req.body.uid || req.headers['x-user-id'];
@@ -166,18 +165,14 @@ app.post('/api/check-upload-limit', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 🚀 4. BULLETPROOF: Analyze (Main Engine with Specific Error Messages)
+// 🚀 4. BULLETPROOF: Analyze (The Main Engine)
 app.post('/api/analyze', async (req, res) => {
     try {
         const { base64, mimeType, base64_b, mimeType_b } = req.body;
         const uid = req.body.uid || req.headers['x-user-id'];
 
         if (!base64 || !mimeType) return res.status(400).json({ error: 'Missing base64 or mimeType' });
-        
-        // THE SPECIFIC ERROR FIX: Return distinct error and message
-        if (!uid) {
-            return res.status(401).json({ error: 'userNotFound', message: 'User ID missing in request' });
-        }
+        if (!uid) return res.status(401).json({ error: 'userNotFound', message: 'Please Login First' });
 
         const today = getTodayString();
         const userRef = db.collection('users').doc(uid);
@@ -201,11 +196,6 @@ app.post('/api/analyze', async (req, res) => {
                 else if (uData.testsUsedToday !== undefined) trialsUsed = Number(uData.testsUsedToday);
                 if (isNaN(trialsUsed)) trialsUsed = 0;
             }
-        } else {
-            // User ID exists but document doesn't - Force a fresh setup instead of error
-            await userRef.set({
-                createdAt: new Date(), trialsUsed: 0, lastTrialDate: today, verified: true, status: 'free', isPro: false
-            }, { merge: true });
         }
 
         if (!isPro && trialsUsed >= 2) {
@@ -253,19 +243,23 @@ app.post('/api/analyze', async (req, res) => {
             try {
                 await db.runTransaction(async (transaction) => {
                     const userDoc = await transaction.get(userRef);
-                    const uData = userDoc.data() || {};
-                    const lastDate = uData.lastTrialDate || uData.lastTestDate || null;
-                    let currTrials = 0;
-                    if (lastDate === today) {
-                        if (uData.trialsUsed !== undefined) currTrials = Number(uData.trialsUsed);
-                        else if (uData.testsUsedToday !== undefined) currTrials = Number(uData.testsUsedToday);
-                        if (isNaN(currTrials)) currTrials = 0;
+                    if (!userDoc.exists) {
+                        transaction.set(userRef, { isPro: false, status: 'free', createdAt: new Date(), trialsUsed: 1, lastTrialDate: today }, { merge: true });
+                    } else {
+                        const uData = userDoc.data() || {};
+                        const lastDate = uData.lastTrialDate || uData.lastTestDate || null;
+                        let currTrials = 0;
+                        if (lastDate === today) {
+                            if (uData.trialsUsed !== undefined) currTrials = Number(uData.trialsUsed);
+                            else if (uData.testsUsedToday !== undefined) currTrials = Number(uData.testsUsedToday);
+                            if (isNaN(currTrials)) currTrials = 0;
+                        }
+                        
+                        transaction.set(userRef, {
+                            trialsUsed: currTrials + 1,
+                            lastTrialDate: today
+                        }, { merge: true });
                     }
-                    
-                    transaction.set(userRef, {
-                        trialsUsed: currTrials + 1,
-                        lastTrialDate: today
-                    }, { merge: true });
                 });
             } catch (txError) { console.error('Transaction Error:', txError); }
         }

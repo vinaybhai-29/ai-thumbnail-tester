@@ -1721,7 +1721,7 @@
             try {
                 const googleProvider = new firebase.auth.GoogleAuthProvider();
                 // Using Redirect instead of Popup for maximum mobile browser compatibility
-                auth.signInWithRedirect(googleProvider);
+                auth.signInWithPopup(googleProvider);
             } catch (err) {
                 console.error('Error starting Google sign in redirect:', err);
                 alert('Error starting sign in: ' + err.message);

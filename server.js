@@ -442,5 +442,6 @@ app.post('/api/verify-payment', async (req, res) => {
 });
 
 app.get('/health', (req, res) => res.json({ status: 'Server is running' }));
+app.get('/ping', (req, res) => res.status(200).send('Server is awake!'));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => { console.log(`✅ Server running on http://localhost:${PORT}`); });

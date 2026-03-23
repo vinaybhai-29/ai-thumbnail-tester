@@ -921,11 +921,11 @@
                     <div class="score-card-label">Thumbnail</div>
                     <div class="score-card-value" id="thumbnailScore">0</div>
                 </div>
-                <div class="score-card">
+                <div class="score-card" id="titleScoreCard">
                     <div class="score-card-label">Title</div>
                     <div class="score-card-value" id="titleScore">0</div>
                 </div>
-                <div class="score-card">
+                <div class="score-card" id="combinedScoreCard">
                     <div class="score-card-label">Combined</div>
                     <div class="score-card-value" id="combinedScore">0</div>
                 </div>
@@ -1830,6 +1830,11 @@
                 document.getElementById('thumbnailScore').className = 'score-card-value';
                 document.getElementById('titleScore').innerText = '';
                 document.getElementById('combinedScore').innerText = '';
+                
+                document.getElementById('titleScoreCard').style.display = 'block';
+                document.getElementById('combinedScoreCard').style.display = 'block';
+                document.querySelector('.score-grid').style.gridTemplateColumns = '1fr 1fr 1fr';
+                
                 document.getElementById('analysisText').innerText = analysis.explanation;
                 document.getElementById('tipsList').innerHTML = '';
                 tipsContainer.style.display = 'none';
@@ -1837,11 +1842,9 @@
                 document.getElementById('thumbnailScore').innerText = analysis.thumbnailScore;
                 document.getElementById('thumbnailScore').className = 'score-card-value ' + getScoreColor(analysis.thumbnailScore);
                 
-                document.getElementById('titleScore').innerText = analysis.titleScore;
-                document.getElementById('titleScore').className = 'score-card-value ' + getScoreColor(analysis.titleScore);
-                
-                document.getElementById('combinedScore').innerText = analysis.combinedScore;
-                document.getElementById('combinedScore').className = 'score-card-value ' + getScoreColor(analysis.combinedScore);
+                document.getElementById('titleScoreCard').style.display = 'none';
+                document.getElementById('combinedScoreCard').style.display = 'none';
+                document.querySelector('.score-grid').style.gridTemplateColumns = '1fr';
 
                 document.getElementById('analysisText').innerText = analysis.analysis;
 

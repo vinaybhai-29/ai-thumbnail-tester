@@ -264,7 +264,7 @@ app.post('/api/analyze', async (req, res) => {
             messages = [{
                 role: 'user',
                 content: [
-                    { type: 'text', text: "Compare these two YouTube thumbnails (Thumbnail A is the first, Thumbnail B is the second). Analyze their CTR potential and declare a clear winner. Return ONLY a JSON object with 'winner' (either 'Thumbnail A' or 'Thumbnail B') and 'explanation' (2-3 sentences explaining why it's better). No extra text, no markdown." },
+                    { type: 'text', text: "Compare these two YouTube thumbnails (Thumbnail A is the first, Thumbnail B is the second). Analyze their CTR potential and declare a clear winner. Return ONLY a JSON object with 'winner' (either 'Thumbnail A' or 'Thumbnail B'), 'titleScore' (0-100 number estimating context relevance), 'combinedScore' (0-100 number estimating overall CTR), and 'explanation' (2-3 sentences explaining why it's better). No extra text, no markdown." },
                     { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64}` } },
                     { type: 'image_url', image_url: { url: `data:${mimeType_b};base64,${base64_b}` } }
                 ]

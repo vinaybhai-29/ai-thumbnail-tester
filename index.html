@@ -387,6 +387,32 @@
             font-size: 0.85rem;
         }
 
+        .premium-badge {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #b48608 80%, #f5d061 100%);
+            border: 1px solid #f5d061;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(180, 134, 8, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .premium-badge::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+            transform: rotate(30deg);
+            animation: badgeShine 3s infinite;
+        }
+        @keyframes badgeShine {
+            0% { transform: translateX(-100%) rotate(30deg); }
+            20%, 100% { transform: translateX(100%) rotate(30deg); }
+        }
+
         .free-trials-badge {
             background: linear-gradient(135deg, #1e293b, #0f172a);
             border: 1px solid #38bdf8;
@@ -1242,6 +1268,7 @@
                 // Reset Badge on Signout
                 const badge = document.getElementById('trialBadge');
                 if(badge) {
+                    badge.className = "free-trials-badge";
                     badge.innerHTML = `🎁 2 Free Daily Trials`;
                     badge.style.background = "";
                     badge.style.color = "";
@@ -1284,11 +1311,13 @@
             const badge = document.getElementById('trialBadge');
             if (badge && data) {
                 if (data.status === 'Pro') {
-                    badge.innerHTML = "✨ Pro Member: Unlimited Analysis";
-                    badge.style.background = "linear-gradient(45deg, #FFD700, #FFA500)";
-                    badge.style.color = "#000";
-                    badge.style.borderColor = "#FFD700";
+                    badge.innerHTML = "👑 🏆 VIP Access: Unlimited AI Power";
+                    badge.className = "free-trials-badge premium-badge";
+                    badge.style.background = "";
+                    badge.style.color = "";
+                    badge.style.borderColor = "";
                 } else {
+                    badge.className = "free-trials-badge";
                     const remaining = data.freeTrialsRemaining !== undefined ? data.freeTrialsRemaining : Math.max(0, 2 - data.uploadCount);
                     
                     if (remaining > 0) {
@@ -1608,6 +1637,7 @@
                     // INSTANT LIVE UPDATE FOR BADGE
                     const badge = document.getElementById('trialBadge');
                     if (badge && userStatus !== 'Pro') {
+                        badge.className = "free-trials-badge";
                         let remaining = Math.max(0, 2 - uploadCount);
                         if (remaining > 0) {
                             badge.innerHTML = `🎁 ${remaining} Free Daily Trial${remaining === 1 ? '' : 's'}`;
@@ -1698,6 +1728,7 @@
                 // INSTANT LIVE UPDATE FOR BADGE
                 const badge = document.getElementById('trialBadge');
                 if (badge && userStatus !== 'Pro') {
+                    badge.className = "free-trials-badge";
                     let remaining = Math.max(0, 2 - uploadCount);
                     if (remaining > 0) {
                         badge.innerHTML = `🎁 ${remaining} Free Daily Trial${remaining === 1 ? '' : 's'}`;
@@ -1828,8 +1859,12 @@
             if(analysis.winner) {
                 document.getElementById('thumbnailScore').innerText = analysis.winner;
                 document.getElementById('thumbnailScore').className = 'score-card-value';
-                document.getElementById('titleScore').innerText = '';
-                document.getElementById('combinedScore').innerText = '';
+                
+                document.getElementById('titleScore').innerText = analysis.titleScore || 'N/A';
+                document.getElementById('titleScore').className = 'score-card-value ' + (analysis.titleScore ? getScoreColor(analysis.titleScore) : '');
+                
+                document.getElementById('combinedScore').innerText = analysis.combinedScore || 'N/A';
+                document.getElementById('combinedScore').className = 'score-card-value ' + (analysis.combinedScore ? getScoreColor(analysis.combinedScore) : '');
                 
                 document.getElementById('titleScoreCard').style.display = 'block';
                 document.getElementById('combinedScoreCard').style.display = 'block';

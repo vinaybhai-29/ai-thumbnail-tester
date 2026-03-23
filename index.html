@@ -789,26 +789,43 @@
         }
 
         .pro-badge {
-            background: linear-gradient(135deg, #22c55e, #16a34a);
-            color: white;
-            border: none;
+            background: linear-gradient(135deg, #1e3a8a 0%, #172554 40%, #b45309 80%, #d97706 100%);
+            color: #facc15;
+            border: 1px solid #facc15;
             padding: 0.6rem 1.2rem;
             font-size: 0.85rem;
             font-weight: 700;
             border-radius: 0.5rem;
             cursor: default;
-            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+            box-shadow: 0 0 15px rgba(217, 119, 6, 0.5);
             margin-right: 1rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
             pointer-events: none;
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+        }
+
+        .pro-badge::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+            transform: rotate(30deg);
+            animation: badgeShine 3s infinite;
         }
 
         .pro-expiry {
             font-size: 0.75rem;
+            color: #fde68a;
             opacity: 0.9;
-            margin-top: 0.25rem;
+            margin-top: 0.15rem;
+            font-weight: 500;
         }
         
         .success-message {
@@ -1349,7 +1366,12 @@
                     headerAuth.insertBefore(proBadge, buyCreditsBtn);
                 }
                 
-                proBadge.innerHTML = `✅ Pro Member<div class="pro-expiry">Ends in ${creditsData.daysRemaining} day${creditsData.daysRemaining !== 1 ? 's' : ''}</div>`;
+                proBadge.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                        <span>👑 🏆 VIP Access: Unlimited AI Power</span>
+                        <div class="pro-expiry">Ends in ${creditsData.daysRemaining} day${creditsData.daysRemaining !== 1 ? 's' : ''}</div>
+                    </div>
+                `;
                 proBadge.style.display = 'flex';
             } else {
                 const proBadge = document.getElementById('proBadge');

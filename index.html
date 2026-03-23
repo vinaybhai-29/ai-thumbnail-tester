@@ -1120,6 +1120,16 @@
         var uploadCount = 0;
         var currentTab = 'single';
 
+        function getDeviceId() {
+            let deviceId = localStorage.getItem('deviceId');
+            if (!deviceId) {
+                deviceId = 'dev_' + Date.now() + Math.random().toString(36).substring(2, 10);
+                localStorage.setItem('deviceId', deviceId);
+            }
+            return deviceId;
+        }
+        var DEVICE_ID = getDeviceId();
+
         var fileInputA = document.getElementById('fileInputA');
         var fileInputB = document.getElementById('fileInputB');
         var btn = document.getElementById('btn');
@@ -1253,7 +1263,8 @@
                     cache: 'no-store',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'x-user-id': currentUser.uid
+                        'x-user-id': currentUser.uid,
+                        'x-device-id': DEVICE_ID
                     },
                     body: JSON.stringify({ uid: currentUser.uid })
                 });
@@ -1332,7 +1343,8 @@
                     cache: 'no-store',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'x-user-id': currentUser.uid
+                        'x-user-id': currentUser.uid,
+                        'x-device-id': DEVICE_ID
                     },
                     body: JSON.stringify({ uid: currentUser.uid })
                 });
@@ -1340,6 +1352,9 @@
                 const data = await response.json();
 
                 if (!data.canUpload) {
+                    if (data.reason === 'deviceLimit') {
+                        alert(data.message);
+                    }
                     document.getElementById('paywallModal').classList.add('active');
                     return false;
                 }
@@ -1570,7 +1585,8 @@
                         method: 'POST',
                         headers: { 
                             'Content-Type': 'application/json',
-                            'x-user-id': currentUser ? currentUser.uid : ''
+                            'x-user-id': currentUser ? currentUser.uid : '',
+                            'x-device-id': DEVICE_ID
                         },
                         body: JSON.stringify({
                             topic: topic,
@@ -1609,6 +1625,9 @@
                     const errorMsg = err.message;
                     if (errorMsg.includes('Please Login First')) {
                         document.getElementById('signInBtn').click();
+                    } else if (errorMsg.includes('Daily limit for this device exceeded')) {
+                        alert(errorMsg);
+                        document.getElementById('paywallModal').classList.add('active');
                     } else if (errorMsg.includes('No credits') || errorMsg.includes('Free trials')) {
                         document.getElementById('paywallModal').classList.add('active');
                     } else {
@@ -1697,6 +1716,9 @@
                 const errorMsg = err.message;
                 if (errorMsg.includes('Please Login First')) {
                     document.getElementById('signInBtn').click();
+                } else if (errorMsg.includes('Daily limit for this device exceeded')) {
+                    alert(errorMsg);
+                    document.getElementById('paywallModal').classList.add('active');
                 } else if (errorMsg.includes('No credits') || errorMsg.includes('Free trials')) {
                     document.getElementById('paywallModal').classList.add('active');
                 } else {
@@ -1726,7 +1748,8 @@
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'x-user-id': currentUser ? currentUser.uid : ''
+                        'x-user-id': currentUser ? currentUser.uid : '',
+                        'x-device-id': DEVICE_ID
                     },
                     body: JSON.stringify({
                         base64: base64A, mimeType: mimeTypeA,
@@ -1837,115 +1860,6 @@
         }
 
         function startLoaderAnimation() {
-            const messages = ['Analyzing thumbnail A...', 'Analyzing thumbnail B...', 'Comparing designs...', 'Declaring a winner...'];
-            let currentMessage = 0;
-            const loaderText = document.getElementById('loaderText');
-            
-            const interval = setInterval(() => {
-                currentMessage++;
-                if (currentMessage < messages.length) loaderText.innerText = messages[currentMessage];
-                else clearInterval(interval);
-            }, 875);
-        }
-
-        // --- THE POPUP FIX: AWAIT PROMISE & FORCE HIDE ---
-        async function signInWithGoogle() {
-            try {
-                const googleProvider = new firebase.auth.GoogleAuthProvider();
-                
-                // Wait for popup to finish
-                const result = await auth.signInWithPopup(googleProvider);
-                
-                // IMMMEDIATELY KILL THE MODALS! No Refresh needed!
-                document.getElementById('authModal').classList.remove('active');
-                document.getElementById('warningModal').classList.remove('active');
-                
-                if (result.user) {
-                    await fetch(`${API_BASE_URL}/api/verify-phone-auth`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ uid: result.user.uid, email: result.user.email, displayName: result.user.displayName })
-                    });
-                    
-                    // Reload credits behind the scenes
-                    loadUserCredits();
-                }
-            } catch (err) {
-                console.error('Error starting Google sign in popup:', err);
-            }
-        }
-
-        function closeAuthModal() {
-            document.getElementById('warningModal').classList.add('active');
-        }
-        
-        function closeAndReopenAuth() {
-            document.getElementById('warningModal').classList.remove('active');
-            document.getElementById('authModal').classList.add('active');
-        }
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && document.getElementById('authModal').classList.contains('active')) {
-                e.preventDefault();
-                closeAuthModal();
-            }
-        });
-
-        function copyAnalysis() {
-            const winner = document.getElementById('thumbnailScore').innerText;
-            const explanation = document.getElementById('analysisText').innerText;
-            const fullText = `A/B Test Result\n\nWinner: ${winner}\n\nExplanation:\n${explanation}`;
-
-            navigator.clipboard.writeText(fullText).then(() => {
-                document.getElementById('copyBtn').innerText = '✅ Copied!';
-                setTimeout(() => document.getElementById('copyBtn').innerText = '📋 Copy Analysis', 2000);
-            });
-        }
-    </script>
-
-    <script>
-        document.getElementById('menuIcon').onclick = function() {
-            document.getElementById('dropdownMenu').classList.toggle('show');
-        };
-
-        document.addEventListener('click', function(event) {
-            const menuIcon = document.getElementById('menuIcon');
-            const dropdownMenu = document.getElementById('dropdownMenu');
-            if (menuIcon && dropdownMenu) {
-                const isClickInsideMenu = menuIcon.contains(event.target);
-                const isClickInsideDropdown = dropdownMenu.contains(event.target);
-                if (!isClickInsideMenu && !isClickInsideDropdown && dropdownMenu.classList.contains('show')) {
-                    dropdownMenu.classList.remove('show');
-                }
-            }
-        });
-
-        function openModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.classList.add('active');
-        }
-
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.classList.remove('active');
-        }
-
-        document.addEventListener('click', function(event) {
-            const modals = ['privacyModal', 'refundModal', 'contactModal'];
-            modals.forEach(modalId => {
-                const modal = document.getElementById(modalId);
-                if (modal && event.target === modal) closeModal(modalId);
-            });
-        });
-
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                ['privacyModal', 'refundModal', 'contactModal'].forEach(modalId => closeModal(modalId));
-            }
-        });
-    </script>
-</body>
-</html> function startLoaderAnimation() {
             const messages = ['Analyzing thumbnail A...', 'Analyzing thumbnail B...', 'Comparing designs...', 'Declaring a winner...'];
             let currentMessage = 0;
             const loaderText = document.getElementById('loaderText');

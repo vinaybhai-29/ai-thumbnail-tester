@@ -50,6 +50,40 @@ app.use(express.static('.'));
 
 const getTodayString = () => new Date().toISOString().split('T')[0];
 
+// 🛡️ BULLETPROOF: Device Limit Checker
+async function checkDeviceLimit(deviceId, uid, isPro) {
+    if (!deviceId || isPro) return { allowed: true };
+    const today = getTodayString();
+    const deviceRef = db.collection('devices').doc(deviceId);
+    
+    try {
+        return await db.runTransaction(async (t) => {
+            const doc = await t.get(deviceRef);
+            if (!doc.exists) {
+                t.set(deviceRef, { lastUsedDate: today, accountsUsed: [uid] });
+                return { allowed: true };
+            }
+            const data = doc.data();
+            if (data.lastUsedDate !== today) {
+                t.set(deviceRef, { lastUsedDate: today, accountsUsed: [uid] });
+                return { allowed: true };
+            }
+            let accounts = data.accountsUsed || [];
+            if (!accounts.includes(uid)) {
+                if (accounts.length >= 2) {
+                    return { allowed: false, message: 'Daily limit for this device exceeded. Upgrade to Pro for ₹49 or try again tomorrow.' };
+                }
+                accounts.push(uid);
+                t.update(deviceRef, { accountsUsed: accounts });
+            }
+            return { allowed: true };
+        });
+    } catch (e) {
+        console.error('Device Check Tx Error:', e);
+        return { allowed: true };
+    }
+}
+
 app.get('/api/get-firebase-config', (req, res) => res.json(firebaseConfig));
 app.get('/api/get-payment-config', (req, res) => res.json({ keyId: process.env.RAZORPAY_KEY_ID }));
 
@@ -159,6 +193,15 @@ app.post('/api/check-upload-limit', async (req, res) => {
         }
 
         if (isPro) return res.json({ canUpload: true, status: 'Pro', isPro: true });
+
+        const deviceId = req.body.deviceId || req.headers['x-device-id'];
+        if (deviceId) {
+            const deviceCheck = await checkDeviceLimit(deviceId, uid, isPro);
+            if (!deviceCheck.allowed) {
+                return res.json({ canUpload: false, uploadCount: trialsUsed, reason: 'deviceLimit', message: deviceCheck.message, status: 'free' });
+            }
+        }
+        
         if (trialsUsed >= 2) return res.json({ canUpload: false, uploadCount: trialsUsed, reason: 'Free limit reached', status: 'free' });
 
         res.json({ canUpload: true, uploadCount: trialsUsed, uploadsRemaining: Math.max(0, 2 - trialsUsed), status: 'free' });
